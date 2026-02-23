@@ -1,1 +1,3563 @@
-# pattern-signal
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding with Claude Code — Pattern & Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2333; --border: #2a3347;
+  --accent: #ff4d4d; --accent2: #ff8c42; --accent3: #00d4b8;
+  --text: #f0eeea; --muted: #7a8599; --muted2: #3a4559;
+  --nav-h: 56px; --sidebar-w: 200px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:100%; height:100%; overflow:hidden; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); }
+body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999; opacity:0.25; }
+
+/* TOP NAV */
+.topnav { position:fixed; top:0; left:0; right:0; height:var(--nav-h); background:rgba(10,10,10,0.96); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:200; }
+.nav-logo { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:0.06em; color:var(--accent); }
+.nav-center { display:flex; align-items:center; gap:10px; }
+.page-label-text { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+.page-counter { background:var(--surface2); border:1px solid var(--border); padding:4px 12px; border-radius:20px; font-family:'DM Mono',monospace; font-size:11px; color:var(--text); }
+.page-counter span { color:var(--accent); }
+.nav-right { display:flex; align-items:center; gap:8px; }
+.nav-btn { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; padding:6px 14px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; border-radius:4px; transition:all 0.2s; }
+.nav-btn:hover, .nav-btn.active { border-color:var(--accent); color:var(--accent); }
+.search-btn { display:flex; align-items:center; gap:6px; font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; padding:6px 12px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; border-radius:4px; transition:all 0.2s; }
+.search-btn:hover { border-color:var(--accent); color:var(--accent); }
+.search-btn kbd { background:var(--surface2); border:1px solid var(--muted2); border-radius:3px; padding:1px 5px; font-size:9px; }
+
+/* SIDEBAR */
+.sidebar { position:fixed; left:0; top:var(--nav-h); bottom:0; width:var(--sidebar-w); background:rgba(10,10,10,0.97); border-right:1px solid var(--border); z-index:150; display:flex; flex-direction:column; padding:16px 0; overflow-y:auto; }
+.sidebar-section-label { padding:0 20px 8px; font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.15em; color:var(--muted); }
+.progress-bar-track { height:2px; background:var(--border); margin:0 20px 12px; border-radius:1px; }
+.progress-bar-fill { height:100%; background:var(--accent); border-radius:1px; transition:width 0.4s ease; width:0%; }
+.sidebar-dot { display:flex; align-items:center; gap:10px; padding:9px 20px; cursor:pointer; transition:all 0.15s; border-left:2px solid transparent; }
+.sidebar-dot:hover { background:var(--surface); }
+.sidebar-dot.active { border-left-color:var(--accent); background:var(--surface); }
+.sidebar-dot.active .dot-num { color:var(--accent); }
+.sidebar-dot.active .dot-label { color:var(--text); }
+.dot-num { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted2); min-width:28px; flex-shrink:0; }
+.dot-label { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sidebar-divider { height:1px; background:var(--border); margin:10px 20px; }
+
+/* VIEWPORT */
+.pages-viewport { position:fixed; left:var(--sidebar-w); right:0; top:var(--nav-h); bottom:0; overflow:hidden; }
+.pages-container { position:absolute; left:0; right:0; top:0; transition:transform 0.55s cubic-bezier(0.77,0,0.175,1); }
+
+/* PAGES */
+.page { width:100%; height:calc(100vh - var(--nav-h)); overflow-y:auto; overflow-x:hidden; position:relative; scroll-behavior:smooth; }
+.page-inner { min-height:100%; padding-bottom:80px; }
+.page section { padding:52px 56px; border-bottom:1px solid var(--border); }
+.page section:last-child { border-bottom:none; }
+
+/* ARROWS */
+.page-arrow { position:fixed; right:20px; background:var(--surface); border:1px solid var(--border); color:var(--muted); width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:180; transition:all 0.2s; }
+.page-arrow:hover { border-color:var(--accent); color:var(--accent); }
+.page-arrow-up { bottom:72px; }
+.page-arrow-down { bottom:24px; }
+
+/* PROGRESS RING */
+.progress-widget { position:fixed; bottom:24px; left:calc(var(--sidebar-w) + 14px); z-index:200; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.progress-ring-wrap { width:44px; height:44px; position:relative; }
+.progress-ring-wrap svg { transform:rotate(-90deg); }
+.progress-ring-track { fill:none; stroke:var(--border); stroke-width:3; }
+.progress-ring-fill { fill:none; stroke:var(--accent); stroke-width:3; stroke-linecap:round; stroke-dasharray:113; stroke-dashoffset:113; transition:stroke-dashoffset 0.4s; }
+.progress-pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:10px; color:var(--text); }
+.progress-label { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
+
+/* KEY HINTS */
+.key-hint-bar { position:fixed; bottom:0; left:var(--sidebar-w); right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:24px; z-index:180; height:0; overflow:hidden; opacity:0; transition:all 0.4s; }
+.key-hint-bar.show { opacity:1; height:32px; }
+.key-hint { display:flex; align-items:center; gap:6px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+.key-hint kbd { background:var(--surface2); border:1px solid var(--muted2); border-radius:3px; padding:2px 6px; font-size:10px; }
+
+/* SEARCH MODAL */
+.search-overlay { position:fixed; inset:0; background:rgba(5,8,16,0.88); backdrop-filter:blur(8px); z-index:500; display:none; align-items:flex-start; justify-content:center; padding-top:15vh; }
+.search-overlay.open { display:flex; }
+.search-modal { width:640px; max-width:calc(100vw - 40px); background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; box-shadow:0 40px 80px rgba(0,0,0,0.7); }
+.search-input-wrap { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); }
+.search-input { flex:1; background:transparent; border:none; outline:none; font-family:'DM Sans',sans-serif; font-size:18px; color:var(--text); caret-color:var(--accent); }
+.search-input::placeholder { color:var(--muted2); }
+.search-esc { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); border:1px solid var(--muted2); border-radius:3px; padding:3px 7px; cursor:pointer; }
+.search-results { max-height:400px; overflow-y:auto; }
+.search-empty { padding:40px; text-align:center; font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); }
+.search-group-label { font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); padding:12px 20px 6px; background:var(--surface2); border-bottom:1px solid var(--border); }
+.search-result-item { display:flex; align-items:center; gap:14px; padding:14px 20px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; text-decoration:none; }
+.search-result-item:hover, .search-result-item.focused { background:var(--surface2); }
+.search-result-icon { font-size:18px; flex-shrink:0; width:28px; text-align:center; }
+.search-result-body { flex:1; min-width:0; }
+.search-result-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:2px; }
+.search-result-title mark { background:rgba(232,255,71,0.25); color:var(--accent); border-radius:2px; padding:0 1px; }
+.search-result-desc { font-size:12px; color:var(--muted); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.search-result-tag { font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); border:1px solid var(--muted2); border-radius:3px; padding:2px 6px; flex-shrink:0; }
+
+/* SECTION LAYOUT */
+.section-header { display:flex; align-items:flex-start; gap:28px; margin-bottom:40px; }
+.section-number { font-family:'Bebas Neue',sans-serif; font-size:88px; line-height:1; color:var(--muted2); flex-shrink:0; margin-top:-12px; }
+.section-label { font-family:'DM Mono',monospace; font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:0.15em; margin-bottom:6px; }
+.section-title { font-family:'Bebas Neue',sans-serif; font-size:clamp(28px,3vw,48px); letter-spacing:0.02em; line-height:1; margin-bottom:10px; }
+.section-desc { color:var(--muted); font-size:13px; max-width:520px; line-height:1.7; }
+.section-title-block {}
+
+/* CARDS */
+.card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:2px; background:var(--border); border:1px solid var(--border); }
+.card { background:var(--surface); padding:24px; transition:background 0.2s; }
+.card:hover { background:var(--surface2); }
+.card-icon { font-size:22px; margin-bottom:10px; display:block; }
+.card-title { font-family:'DM Mono',monospace; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); margin-bottom:7px; }
+.card-text { font-size:13px; color:var(--muted); line-height:1.6; }
+.card-text strong { color:var(--text); font-weight:500; }
+
+/* CHECKLIST */
+.checklist { display:flex; flex-direction:column; gap:2px; background:var(--border); border:1px solid var(--border); }
+.check-item { background:var(--surface); display:flex; align-items:flex-start; gap:12px; padding:14px 18px; cursor:pointer; transition:background 0.15s; user-select:none; }
+.check-item:hover { background:var(--surface2); }
+.check-item.done { opacity:0.5; }
+.check-item.done .check-label { text-decoration:line-through; }
+.checkbox { width:17px; height:17px; border:1.5px solid var(--muted2); flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; border-radius:3px; }
+.check-item.done .checkbox { background:var(--accent); border-color:var(--accent); }
+.checkbox::after { content:'✓'; font-size:11px; color:#0d1117; opacity:0; transition:opacity 0.2s; }
+.check-item.done .checkbox::after { opacity:1; }
+.check-label { font-size:13px; line-height:1.5; color:var(--text); }
+.check-label span { display:block; font-size:11px; color:var(--muted); margin-top:2px; font-family:'DM Mono',monospace; }
+
+/* CALLOUTS */
+.callout { border:1px solid var(--border); border-left:3px solid var(--accent2); padding:14px 18px; margin:18px 0; background:rgba(255,77,77,0.07); }
+.callout.info { border-left-color:var(--accent3); background:rgba(0,212,184,0.07); }
+.callout.tip { border-left-color:var(--accent); background:rgba(255,77,77,0.05); }
+.callout-label { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px; color:var(--accent2); }
+.callout.info .callout-label { color:var(--accent3); }
+.callout.tip .callout-label { color:var(--accent); }
+.callout p { font-size:13px; color:var(--muted); line-height:1.65; }
+.callout p strong { color:var(--text); }
+
+/* CODE */
+.code-block { background:#0a0e14; border:1px solid var(--border); border-left:3px solid var(--accent); padding:18px; font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:#c5cedd; overflow-x:auto; margin:18px 0; }
+.code-block .comment { color:var(--muted); font-style:italic; }
+.code-block .highlight { color:var(--accent); }
+
+/* TWO COL */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:2px; background:var(--border); border:1px solid var(--border); margin:18px 0; }
+.two-col > div { background:var(--surface); padding:22px; }
+.col-label { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:10px; }
+.col-label.green { color:var(--accent); }
+.col-label.red { color:var(--accent2); }
+
+/* PROMPTS */
+.prompt-example { background:var(--surface); border:1px solid var(--border); margin:10px 0; overflow:hidden; }
+.prompt-header { background:var(--surface2); padding:7px 12px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.prompt-badge { background:var(--accent); color:#0d1117; padding:2px 7px; font-size:9px; font-weight:500; border-radius:2px; }
+.prompt-badge.bad { background:var(--accent2); }
+.prompt-body { padding:12px; font-size:12px; font-family:'DM Mono',monospace; color:var(--text); line-height:1.6; }
+
+/* STACK TABLE */
+.stack-table { width:100%; border-collapse:collapse; font-size:13px; margin:18px 0; }
+.stack-table th { text-align:left; font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); padding:9px 12px; border-bottom:1px solid var(--border); }
+.stack-table td { padding:11px 12px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:top; }
+.stack-table tr:last-child td { border-bottom:none; }
+.stack-table tr:hover td { background:var(--surface2); }
+.stack-table td:first-child { font-family:'DM Mono',monospace; color:var(--accent); font-size:12px; white-space:nowrap; }
+.stack-table td:last-child { color:var(--muted); font-size:12px; }
+.rec-badge { display:inline-block; background:rgba(232,255,71,0.1); color:var(--accent); border:1px solid rgba(232,255,71,0.3); padding:2px 7px; font-family:'DM Mono',monospace; font-size:9px; border-radius:2px; margin-left:6px; }
+
+.divider { border:none; border-top:1px solid var(--border); margin:28px 0; }
+.mono { font-family:'DM Mono',monospace; }
+.accent { color:var(--accent); }
+.accent2 { color:var(--accent2); }
+.accent3 { color:var(--accent3); }
+.hidden { display:none !important; }
+
+/* OS TOGGLE */
+.os-toggle { display:flex; gap:8px; margin-bottom:28px; }
+.os-btn { font-family:'DM Mono',monospace; font-size:12px; padding:8px 22px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; border-radius:4px; transition:all 0.2s; letter-spacing:0.05em; }
+.os-btn.active { background:var(--accent); border-color:var(--accent); color:#0d1117; font-weight:500; }
+.os-btn:not(.active):hover { border-color:var(--accent); color:var(--accent); }
+.os-track { display:none; }
+.os-track.active { display:block; }
+
+/* SETUP STEPS */
+.setup-step { display:grid; grid-template-columns:86px 1fr; gap:24px; padding:26px 0; border-bottom:1px solid var(--border); }
+.setup-step:last-child { border-bottom:none; }
+.setup-step-num { font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:0.08em; color:var(--accent); padding-top:3px; }
+.setup-step-title { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.04em; margin-bottom:7px; line-height:1; }
+.setup-step-desc { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:12px; max-width:600px; }
+.setup-how { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--accent3); padding:12px 16px; margin-bottom:12px; font-size:13px; color:var(--muted); line-height:1.7; }
+.setup-how strong { color:var(--text); }
+.setup-how-label { font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:var(--accent3); margin-bottom:5px; }
+
+/* START HERE */
+#start-here { background:var(--surface); }
+.flow-header { text-align:center; margin-bottom:40px; }
+.flow-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:0; position:relative; margin-bottom:32px; }
+.flow-connector { position:absolute; top:48px; left:10%; width:80%; height:2px; background:linear-gradient(90deg,var(--accent) 0%,var(--accent3) 50%,var(--accent2) 100%); z-index:0; }
+.flow-connector::after { content:''; position:absolute; right:-6px; top:-5px; width:0; height:0; border-left:10px solid var(--accent2); border-top:6px solid transparent; border-bottom:6px solid transparent; }
+.flow-step { display:flex; flex-direction:column; align-items:center; gap:10px; position:relative; z-index:1; padding:0 6px; }
+.flow-node { width:92px; height:92px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:2px solid var(--border); background:var(--bg); transition:all 0.2s; cursor:pointer; text-decoration:none; }
+.flow-step:nth-child(1) .flow-node { border-color:var(--accent); }
+.flow-step:nth-child(2) .flow-node { border-color:#a8ff78; }
+.flow-step:nth-child(3) .flow-node { border-color:var(--accent3); }
+.flow-step:nth-child(4) .flow-node { border-color:#c084fc; }
+.flow-step:nth-child(5) .flow-node { border-color:var(--accent2); }
+.flow-node:hover { transform:scale(1.07); }
+.flow-node-num { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+.flow-node-icon { font-size:24px; line-height:1; }
+.flow-step-title { font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:0.05em; text-align:center; color:var(--text); }
+.flow-step-sub { font-size:10px; color:var(--muted); text-align:center; font-family:'DM Mono',monospace; line-height:1.4; }
+.flow-time { font-family:'DM Mono',monospace; font-size:10px; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--muted); }
+.flow-step:nth-child(1) .flow-time { border-color:var(--accent); color:var(--accent); }
+.flow-step:nth-child(2) .flow-time { border-color:#a8ff78; color:#a8ff78; }
+.flow-step:nth-child(3) .flow-time { border-color:var(--accent3); color:var(--accent3); }
+.flow-step:nth-child(4) .flow-time { border-color:#c084fc; color:#c084fc; }
+.flow-step:nth-child(5) .flow-time { border-color:var(--accent2); color:var(--accent2); }
+.flow-details { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; background:var(--border); border:1px solid var(--border); margin-top:28px; }
+.flow-detail-card { background:var(--bg); padding:14px; }
+.flow-detail-label { font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px; }
+.flow-detail-item { font-size:11px; color:var(--muted); padding:4px 0; border-bottom:1px solid var(--border); line-height:1.4; }
+.flow-detail-item:last-child { border-bottom:none; }
+.flow-detail-item strong { color:var(--text); display:block; font-size:11px; }
+
+/* EFFECTS PLAYGROUND */
+#ui-playground { background:var(--surface); }
+.demo-grid { display:flex; flex-direction:column; gap:2px; background:var(--border); border:1px solid var(--border); }
+.demo-card { background:var(--bg); }
+.demo-label { display:flex; align-items:center; gap:12px; padding:11px 22px; background:var(--surface); border-bottom:1px solid var(--border); }
+.demo-num { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); min-width:22px; }
+.demo-title { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:0.05em; color:var(--text); flex:1; }
+.demo-tag { font-family:'DM Mono',monospace; font-size:10px; color:var(--accent3); border:1px solid rgba(71,212,255,0.3); padding:3px 9px; border-radius:20px; }
+.demo-body { display:grid; grid-template-columns:1fr 1fr; min-height:280px; }
+.demo-preview { border-right:1px solid var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; position:relative; background:repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(255,255,255,0.018) 20px,rgba(255,255,255,0.018) 40px); }
+.demo-preview-label { position:absolute; top:9px; left:12px; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted2); text-transform:uppercase; letter-spacing:0.12em; }
+.demo-replay-btn { position:absolute; bottom:9px; right:12px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); padding:3px 9px; cursor:pointer; border-radius:3px; transition:all 0.2s; }
+.demo-replay-btn:hover { color:var(--accent); border-color:var(--accent); }
+.demo-code-panel { display:flex; flex-direction:column; background:#0a0e14; position:relative; }
+.demo-tabs { display:flex; border-bottom:1px solid var(--border); }
+.demo-tab { font-family:'DM Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.08em; padding:8px 14px; background:transparent; border:none; border-right:1px solid var(--border); color:var(--muted); cursor:pointer; transition:all 0.15s; }
+.demo-tab.active { color:var(--accent); background:var(--surface); }
+.demo-tab-content { flex:1; padding:16px; font-family:'DM Mono',monospace; font-size:12px; line-height:1.7; color:#8a9ab0; white-space:pre; overflow:auto; }
+.demo-tab-content.hidden { display:none; }
+.demo-copy-btn { position:absolute; bottom:9px; right:9px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); padding:4px 10px; cursor:pointer; border-radius:3px; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.08em; }
+.demo-copy-btn:hover { color:var(--accent); border-color:var(--accent); }
+.demo-copy-btn.copied { color:#a8ff78; border-color:#a8ff78; }
+
+/* Demo effects */
+.hover-demo-grid { display:flex; gap:10px; }
+.hd-card { width:80px; border-radius:8px; overflow:hidden; background:var(--surface); border:1px solid var(--border); cursor:pointer; transition:transform 200ms ease,box-shadow 200ms ease; }
+.hd-card:hover { transform:scale(1.06); box-shadow:0 16px 32px rgba(0,0,0,0.5); }
+.hd-img { height:52px; transition:transform 200ms ease; }
+.hd-card:hover .hd-img { transform:scale(1.1); }
+.hd-text { padding:6px; font-size:10px; font-family:'DM Mono',monospace; color:var(--muted); text-align:center; }
+.scroll-demo-wrap { display:flex; flex-direction:column; gap:6px; width:100%; max-width:220px; }
+.sd-item { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); padding:8px 12px; font-size:12px; font-family:'DM Mono',monospace; color:var(--text); opacity:0; transform:translateY(20px); transition:opacity 500ms ease,transform 500ms ease; }
+.sd-item.in { opacity:1; transform:none; }
+.btn-demo-wrap { display:flex; flex-direction:column; gap:7px; width:140px; }
+.demo-btn-primary { padding:10px 18px; background:var(--accent); color:#0d1117; border:none; border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; font-weight:500; cursor:pointer; transition:transform 150ms ease,box-shadow 150ms ease; }
+.demo-btn-primary:hover { box-shadow:0 8px 20px rgba(232,255,71,0.3); }
+.demo-btn-primary:active { transform:scale(0.96); }
+.demo-btn-secondary { padding:10px 18px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:11px; cursor:pointer; transition:transform 150ms ease,border-color 150ms ease; }
+.demo-btn-secondary:hover { border-color:var(--accent); }
+.demo-btn-secondary:active { transform:scale(0.96); }
+.demo-btn-ghost { padding:10px 18px; background:transparent; color:var(--muted); border:none; font-family:'DM Mono',monospace; font-size:11px; cursor:pointer; text-decoration:underline; text-decoration-color:transparent; text-underline-offset:3px; transition:all 150ms ease; }
+.demo-btn-ghost:hover { color:var(--text); text-decoration-color:var(--muted); }
+.demo-btn-ghost:active { transform:scale(0.96); }
+.skeleton-demo-wrap { width:100%; max-width:220px; }
+.skel-card,.real-card { display:flex; gap:9px; padding:12px; background:var(--surface); border:1px solid var(--border); border-radius:6px; align-items:flex-start; }
+@keyframes shimmer { 0% { background-position:-400px 0; } 100% { background-position:400px 0; } }
+.skel-pulse { background:linear-gradient(90deg,#0a0e14 25%,#1a1e28 50%,#0a0e14 75%); background-size:400px 100%; animation:shimmer 1.4s infinite linear; }
+.skel-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0; }
+.skel-lines { flex:1; display:flex; flex-direction:column; gap:6px; padding-top:2px; }
+.skel-line { height:8px; border-radius:4px; }
+.real-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent3)); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#0d1117; flex-shrink:0; font-family:'DM Mono',monospace; }
+.real-lines { flex:1; }
+.real-name { font-size:12px; font-weight:500; margin-bottom:2px; }
+.real-role { font-size:10px; color:var(--accent); font-family:'DM Mono',monospace; margin-bottom:4px; }
+.real-bio { font-size:11px; color:var(--muted); line-height:1.5; }
+.stagger-demo-wrap { display:flex; flex-direction:column; gap:8px; max-width:220px; width:100%; }
+@keyframes fadeUpDemo { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:none; } }
+.stagger-item { animation:fadeUpDemo 600ms cubic-bezier(0.16,1,0.3,1) both; }
+.stagger-tag { font-family:'DM Mono',monospace; font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:0.15em; }
+.stagger-h { font-family:'Bebas Neue',sans-serif; font-size:30px; line-height:1; letter-spacing:0.02em; }
+.stagger-p { font-size:12px; color:var(--muted); line-height:1.6; }
+.stagger-cta { align-self:flex-start; padding:8px 16px; background:var(--accent); color:#0d1117; border:none; font-family:'DM Mono',monospace; font-size:11px; font-weight:500; cursor:pointer; border-radius:3px; transition:transform 150ms ease; }
+.stagger-cta:active { transform:scale(0.96); }
+.haptic-demo-wrap { display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%; max-width:220px; }
+.haptic-btn { display:flex; flex-direction:column; align-items:center; gap:3px; padding:10px 7px; background:var(--surface); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 150ms ease; font-family:'DM Mono',monospace; }
+.haptic-btn span:first-child { font-size:11px; color:var(--text); }
+.haptic-hint { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+.haptic-btn:hover { border-color:var(--accent); }
+.haptic-btn:active { transform:scale(0.95); }
+.haptic-btn.fired { border-color:var(--accent); background:rgba(232,255,71,0.06); }
+.haptic-support-msg { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-align:center; min-height:14px; }
+.state-demo-wrap { width:100%; max-width:220px; }
+.state-form { display:flex; flex-direction:column; gap:6px; }
+.state-input { padding:8px 12px; background:var(--surface2); border:1.5px solid var(--border); border-radius:4px; font-family:'DM Mono',monospace; font-size:12px; color:var(--text); outline:none; transition:border-color 200ms ease; caret-color:var(--accent); }
+.state-input::placeholder { color:var(--muted2); }
+.state-input:focus { border-color:var(--muted); }
+@keyframes shake { 0%,100% { transform:translateX(0); } 20% { transform:translateX(-8px); } 40% { transform:translateX(8px); } 60% { transform:translateX(-5px); } 80% { transform:translateX(5px); } }
+.state-input.error { border-color:var(--accent2); animation:shake 400ms ease; }
+.state-input.success { border-color:#a8ff78; }
+.state-error-msg { font-size:11px; color:var(--accent2); font-family:'DM Mono',monospace; display:none; padding:0 2px; }
+.state-success-msg { font-size:11px; color:#a8ff78; font-family:'DM Mono',monospace; display:none; padding:0 2px; }
+.state-error-msg.show,.state-success-msg.show { display:block; }
+.state-btns { display:flex; gap:5px; flex-wrap:wrap; margin-top:2px; }
+.state-btn-success,.state-btn-error,.state-btn-reset { font-family:'DM Mono',monospace; font-size:10px; padding:6px 10px; border-radius:3px; cursor:pointer; border:1px solid; transition:all 150ms ease; text-transform:uppercase; letter-spacing:0.06em; }
+.state-btn-success { background:transparent; border-color:#a8ff78; color:#a8ff78; }
+.state-btn-success:hover { background:rgba(168,255,120,0.1); }
+.state-btn-error { background:transparent; border-color:var(--accent2); color:var(--accent2); }
+.state-btn-error:hover { background:rgba(255,107,53,0.1); }
+.state-btn-reset { background:transparent; border-color:var(--muted2); color:var(--muted); }
+.state-btn-reset:hover { border-color:var(--muted); color:var(--text); }
+.flip-demo-wrap { perspective:1000px; }
+.flip-card { width:160px; height:180px; cursor:pointer; }
+.flip-inner { width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform 500ms ease; }
+.flip-card.flipped .flip-inner { transform:rotateY(180deg); }
+.flip-front,.flip-back { position:absolute; inset:0; backface-visibility:hidden; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:1px solid var(--border); }
+.flip-front { background:var(--surface); }
+.flip-back { background:linear-gradient(135deg,rgba(232,255,71,0.08),rgba(71,212,255,0.08)); border-color:var(--accent3); transform:rotateY(180deg); }
+.flip-icon { font-size:30px; }
+.flip-title { font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:0.05em; }
+.flip-sub { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
+
+/* GLOSSARY */
+.glossary-page { padding-top:0; }
+.glossary-hero { padding:52px 56px 36px; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+.glossary-hero::before { content:'A–Z'; position:absolute; right:56px; top:50%; transform:translateY(-50%); font-family:'Bebas Neue',sans-serif; font-size:140px; color:var(--muted2); opacity:0.25; pointer-events:none; line-height:1; }
+.glossary-hero h2 { font-family:'Bebas Neue',sans-serif; font-size:58px; letter-spacing:0.02em; line-height:1; margin-bottom:10px; }
+.glossary-hero h2 span { color:var(--accent); }
+.glossary-hero p { font-size:14px; color:var(--muted); max-width:440px; line-height:1.7; }
+.glossary-search-wrap { padding:16px 56px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px; }
+.glossary-search { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text); outline:none; caret-color:var(--accent); transition:border-color 0.2s; }
+.glossary-search:focus { border-color:var(--accent); }
+.glossary-search::placeholder { color:var(--muted2); }
+.glossary-count { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); white-space:nowrap; }
+.glossary-alpha-nav { padding:12px 56px; display:flex; gap:3px; flex-wrap:wrap; border-bottom:1px solid var(--border); }
+.alpha-btn { font-family:'DM Mono',monospace; font-size:11px; width:25px; height:25px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; border-radius:3px; transition:all 0.15s; text-transform:uppercase; }
+.alpha-btn:hover,.alpha-btn.has-terms { border-color:var(--accent); color:var(--accent); }
+.alpha-btn.no-terms { opacity:0.2; cursor:default; }
+.glossary-body { padding:0 56px 80px; }
+.glossary-letter-group { padding-top:36px; }
+.glossary-letter { font-family:'Bebas Neue',sans-serif; font-size:52px; color:var(--muted2); line-height:1; margin-bottom:14px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+.glossary-term { padding:16px 0; border-bottom:1px solid var(--border); display:grid; grid-template-columns:210px 1fr; gap:24px; align-items:start; }
+.glossary-term:last-child { border-bottom:none; }
+.term-name { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:var(--accent); line-height:1.4; }
+.term-category { display:inline-block; font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); border:1px solid var(--muted2); border-radius:2px; padding:1px 5px; margin-top:3px; }
+.term-def { font-size:13px; color:var(--muted); line-height:1.7; }
+.term-def strong { color:var(--text); font-weight:500; }
+.term-def code { font-family:'DM Mono',monospace; font-size:11px; background:var(--surface2); padding:1px 4px; border-radius:3px; color:var(--accent3); }
+.glossary-no-results { padding:60px 0; text-align:center; font-family:'DM Mono',monospace; font-size:13px; color:var(--muted); display:none; }
+
+/* PLAIN ENGLISH EXPLAINER */
+.explainer {
+  background: linear-gradient(135deg, rgba(232,255,71,0.04) 0%, rgba(71,212,255,0.04) 100%);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  padding: 28px 32px;
+  margin-bottom: 36px;
+}
+.explainer-eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.explainer-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.explainer-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.1;
+}
+.explainer-body { font-size: 14px; color: #a0a8b0; line-height: 1.8; max-width: 700px; }
+.explainer-body strong { color: var(--text); font-weight: 500; }
+.explainer-body em { color: var(--accent); font-style: normal; }
+.explainer-analogy {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: rgba(0,0,0,0.3);
+  border-left: 2px solid var(--accent3);
+}
+.explainer-analogy-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
+.explainer-analogy-text { font-size: 13px; color: var(--muted); line-height: 1.65; font-style: italic; }
+.explainer-analogy-text strong { color: var(--accent3); font-style: normal; font-weight: 500; }
+
+  /* ── PATTERN & SIGNAL BRANDING ── */
+  .sidebar-brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    padding: 0 20px 6px;
+    color: var(--text);
+  }
+  .landing-wordmark {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.1em;
+  }
+  .lw-pattern { color: var(--text); letter-spacing: 0.12em; }
+  .lw-amp { color: var(--accent); margin: 0 5px; font-size: 20px; }
+  .lw-signal { color: var(--accent3); letter-spacing: 0.12em; }
+  .landing-topbar-right { display: flex; align-items: center; gap: 16px; }
+  .landing-watermark {
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(80px, 12vw, 160px);
+    line-height: 0.9;
+    letter-spacing: 0.06em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,77,77,0.12);
+    pointer-events: none;
+    user-select: none;
+    text-align: right;
+    z-index: 0;
+  }
+  .landing-eyebrow::after {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    display: inline-block;
+    margin-left: 6px;
+    animation: pulsedot 2s ease-in-out infinite;
+  }
+  @keyframes pulsedot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.6); }
+  }
+  .card-what {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--accent3);
+    margin-bottom: 6px;
+  }
+  .check-what {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent3);
+    margin-top: 4px;
+    margin-bottom: 2px;
+    font-style: italic;
+  }
+  .what-is-row {
+    display: flex;
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 20px 0;
+  }
+  .what-is-item {
+    background: var(--surface);
+    padding: 16px 18px;
+    flex: 1;
+  }
+  .what-is-term {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 5px;
+  }
+  .what-is-def {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .what-is-def strong { color: var(--text); }
+
+
+.reveal { opacity:1 !important; transform:none !important; }
+
+  /* ── LAUNCH SECTION ── */
+  .launch-timeline { display:flex; flex-direction:column; }
+
+  .launch-phase {
+    display:grid;
+    grid-template-columns:32px 1fr;
+    gap:24px;
+    padding:0 0 40px;
+  }
+  .launch-phase-marker {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding-top:6px;
+  }
+  .launch-phase-dot {
+    width:14px; height:14px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .launch-phase-line {
+    width:2px; flex:1;
+    background:var(--border);
+    margin-top:8px;
+    min-height:40px;
+  }
+  .launch-phase:last-child .launch-phase-line { display:none; }
+  .launch-phase-tag {
+    font-family:'DM Mono',monospace;
+    font-size:10px; text-transform:uppercase; letter-spacing:0.12em;
+    border:1px solid; display:inline-block;
+    padding:3px 10px; border-radius:20px; margin-bottom:8px;
+  }
+  .launch-phase-title {
+    font-family:'Bebas Neue',sans-serif;
+    font-size:26px; letter-spacing:0.03em; line-height:1;
+    margin-bottom:10px; color:var(--text);
+  }
+  .launch-phase-desc {
+    font-size:13px; color:var(--muted);
+    line-height:1.75; max-width:680px; margin-bottom:16px;
+  }
+  .launch-prompts {
+    background:#0a0e14;
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    padding:16px 20px; margin:16px 0;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .launch-prompt-label {
+    font-family:'DM Mono',monospace; font-size:9px;
+    text-transform:uppercase; letter-spacing:0.14em;
+    color:var(--accent); margin-bottom:4px;
+  }
+  .launch-prompt {
+    font-family:'DM Mono',monospace; font-size:12px;
+    color:#c5cedd; line-height:1.65;
+    padding:10px 14px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--border); border-radius:3px;
+    cursor:pointer; transition:all 0.15s;
+    position:relative;
+  }
+  .launch-prompt:hover { border-color:var(--accent); background:rgba(232,255,71,0.04); }
+  .launch-callout {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:14px 18px;
+    background:rgba(255,77,77,0.07);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent2);
+    margin:16px 0; font-size:13px;
+    color:var(--muted); line-height:1.65;
+  }
+  .launch-callout-icon { font-size:18px; flex-shrink:0; line-height:1.2; }
+  .launch-callout-text strong { color:var(--text); }
+  .launch-checklist {
+    display:flex; flex-direction:column; gap:2px;
+    background:var(--border); border:1px solid var(--border);
+    margin-top:16px;
+  }
+  .launch-check-item {
+    background:var(--surface);
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px; cursor:pointer;
+    transition:background 0.15s; user-select:none;
+    font-size:13px; color:var(--text);
+  }
+  .launch-check-item:hover { background:var(--surface2); }
+  .launch-check-item.done { opacity:0.45; text-decoration:line-through; }
+  .launch-check-box {
+    width:16px; height:16px;
+    border:1.5px solid var(--muted2);
+    flex-shrink:0; border-radius:3px;
+    transition:all 0.2s; position:relative;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .launch-check-item.done .launch-check-box {
+    background:var(--accent); border-color:var(--accent);
+  }
+  .launch-check-item.done .launch-check-box::after {
+    content:'✓'; font-size:10px; color:#0d1117;
+  }
+
+@media (max-width: 768px) {
+  :root { --sidebar-w:0px; }
+  .sidebar { transform:translateX(-200px); width:200px; transition:transform 0.3s; }
+  .sidebar.open { transform:translateX(0); }
+  .page section { padding:28px 18px; }
+  .two-col,.demo-body { grid-template-columns:1fr; }
+  .flow-grid { grid-template-columns:1fr 1fr; }
+  .flow-connector { display:none; }
+  .flow-details { grid-template-columns:1fr 1fr; }
+  .glossary-term { grid-template-columns:1fr; gap:6px; }
+  .glossary-hero,.glossary-search-wrap,.glossary-alpha-nav,.glossary-body { padding-left:18px; padding-right:18px; }
+  .glossary-hero::before { display:none; }
+  .demo-preview { border-right:none; border-bottom:1px solid var(--border); }
+  .setup-step { grid-template-columns:1fr; gap:5px; }
+  .page-arrow { display:none; }
+}
+  /* ── LANDING PAGE ── */
+  #landing {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #0d1117;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  #landing.exit {
+    animation: landingExit 0.9s cubic-bezier(0.77,0,0.175,1) forwards;
+  }
+
+  @keyframes landingExit {
+    0%   { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100%); opacity: 1; }
+  }
+
+  /* grid lines background */
+  .landing-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,77,77,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,77,77,0.06) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+  }
+
+  /* large background number */
+  .landing-bg-num {
+    position: absolute;
+    right: -20px;
+    bottom: -60px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(280px, 35vw, 480px);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,77,77,0.1);
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.02em;
+  }
+
+  /* top bar */
+  .landing-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 48px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    position: relative;
+    z-index: 2;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.2s forwards;
+  }
+
+  .landing-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(240,238,234,0.6);
+  }
+
+  .landing-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(255,77,77,0.5);
+    padding: 5px 14px;
+    border-radius: 20px;
+  }
+
+  /* main content */
+  .landing-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 48px;
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+  }
+
+  .landing-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.35s forwards;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .landing-eyebrow::before {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .landing-headline {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 8vw, 112px);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    color: var(--text);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.45s forwards;
+  }
+
+  .landing-headline em {
+    color: var(--accent);
+    font-style: normal;
+  }
+
+  .landing-sub {
+    font-size: clamp(14px, 1.5vw, 17px);
+    color: #f0eeea;
+    line-height: 1.7;
+    max-width: 520px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.55s forwards;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+  }
+
+  .landing-sub strong {
+    color: #f0eeea;
+    font-weight: 400;
+  }
+
+  /* CTA */
+  .landing-cta {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.65s forwards;
+  }
+
+  .landing-enter-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 16px 32px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+
+  .landing-enter-btn:hover {
+    background: #ff2a2a;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(232,255,71,0.25);
+  }
+
+  .landing-enter-btn svg {
+    transition: transform 0.2s;
+  }
+
+  .landing-enter-btn:hover svg {
+    transform: translateX(4px);
+  }
+
+  .landing-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(240,238,234,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    line-height: 1.6;
+  }
+
+  /* stats row */
+  .landing-stats {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    z-index: 2;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.8s forwards;
+  }
+
+  .landing-stat {
+    flex: 1;
+    padding: 20px 48px;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .landing-stat:last-child { border-right: none; }
+
+  .landing-stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  .landing-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(240,238,234,0.55);
+  }
+
+  /* accent line */
+  .landing-accent-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent3) 50%, var(--accent2) 100%);
+  }
+
+  /* scanning animation */
+  .landing-scan {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,77,77,0.5), transparent);
+    animation: scan 4s ease-in-out 1s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes scan {
+    0%   { top: 0; opacity: 0; }
+    5%   { opacity: 1; }
+    95%  { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* hide guide while landing is showing */
+  body.landing-active .topnav,
+  body.landing-active .sidebar,
+  body.landing-active .pages-viewport,
+  body.landing-active .progress-widget,
+  body.landing-active .key-hint-bar,
+  body.landing-active #arrowUp,
+  body.landing-active #arrowDown {
+    visibility: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .landing-topbar { padding: 20px 24px; }
+    .landing-body { padding: 0 24px; }
+    .landing-stats { display: none; }
+    .landing-bg-num { display: none; }
+    .landing-headline { font-size: 56px; }
+  }
+
+</style>
+</head>
+<body>
+
+
+<div id="landing" onclick="enterGuide()">
+  <div class="landing-accent-line"></div>
+  <div class="landing-grid"></div>
+  <div class="landing-scan"></div>
+
+  <!-- Background wordmark watermark -->
+  <div class="landing-watermark">PATTERN<br>&amp;<br>SIGNAL</div>
+
+  <!-- Top bar -->
+  <div class="landing-topbar">
+    <div class="landing-wordmark">
+      <span class="lw-pattern">Pattern</span><span class="lw-amp">&</span><span class="lw-signal">Signal</span>
+    </div>
+    <div class="landing-topbar-right">
+      <div class="landing-tag">Field Guide — 2026</div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="landing-body">
+    <div class="landing-eyebrow">For non-technical founders</div>
+    <div class="landing-headline">
+      Vibe Coding<br>
+      with <em>Claude</em><br>
+      Code
+    </div>
+    <div class="landing-sub">
+      The complete playbook for building real products with AI —
+      <strong>no engineering degree required.</strong>
+      Setup to launch, prompting to payments.
+      Everything you need, nothing you don't.
+    </div>
+    <div class="landing-cta">
+      <button class="landing-enter-btn" onclick="enterGuide()">
+        Open the Guide
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <div class="landing-hint">
+        11 sections &nbsp;·&nbsp; scroll or arrow keys to navigate
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom stats bar -->
+  <div class="landing-stats">
+    <div class="landing-stat">
+      <div class="landing-stat-num">11</div>
+      <div class="landing-stat-label">Sections</div>
+    </div>
+    <div class="landing-stat">
+      <div class="landing-stat-num">70+</div>
+      <div class="landing-stat-label">Glossary terms</div>
+    </div>
+    <div class="landing-stat">
+      <div class="landing-stat-num">50+</div>
+      <div class="landing-stat-label">Claude prompts</div>
+    </div>
+    <div class="landing-stat">
+      <div class="landing-stat-num">0</div>
+      <div class="landing-stat-label">CS degree required</div>
+    </div>
+  </div>
+</div>
+<div class="search-overlay" id="searchOverlay" onclick="closeSearchIfOutside(event)">
+  <div class="search-modal">
+    <div class="search-input-wrap">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" id="searchInput" placeholder="Search sections, tips, tools..." autocomplete="off"/>
+      <span class="search-esc" onclick="closeSearch()">ESC</span>
+    </div>
+    <div class="search-results" id="searchResults"><div class="search-empty">Start typing to search</div></div>
+  </div>
+</div>
+
+<nav class="topnav">
+  <div class="nav-logo"><span class="lw-pattern" style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.1em;">Pattern</span><span class="lw-amp" style="font-family:'Bebas Neue',sans-serif;font-size:16px;margin:0 4px;color:var(--accent)">&amp;</span><span class="lw-signal" style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:0.1em;color:var(--accent3)">Signal</span></div>
+  <div class="nav-center">
+    <span class="page-label-text" id="pageLabel">Setup</span>
+    <span class="page-counter"><span id="pageNum">1</span> <span style="color:var(--muted)">/</span> 11</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn active" id="tab-guide" onclick="showGuide()">Guide</button>
+    <button class="nav-btn" id="tab-glossary" onclick="showGlossary()">Glossary</button>
+    <button class="search-btn" onclick="openSearch()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd>/</kbd>
+    </button>
+  </div>
+</nav>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">Pattern &amp; Signal</div><div class="sidebar-section-label">Field Guide</div>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="sidebarProgress"></div></div>
+  <div class="sidebar-dot" id="dot-0" onclick="goTo(0)" title="Setup"><span class="dot-num">00</span><span class="dot-label">Setup</span></div>
+<div class="sidebar-dot" id="dot-1" onclick="goTo(1)" title="Start Here"><span class="dot-num">↑</span><span class="dot-label">Start Here</span></div>
+<div class="sidebar-dot" id="dot-2" onclick="goTo(2)" title="Prompting"><span class="dot-num">01</span><span class="dot-label">Prompting</span></div>
+<div class="sidebar-dot" id="dot-3" onclick="goTo(3)" title="Features"><span class="dot-num">02</span><span class="dot-label">Features</span></div>
+<div class="sidebar-dot" id="dot-4" onclick="goTo(4)" title="UI / UX"><span class="dot-num">03</span><span class="dot-label">UI / UX</span></div>
+<div class="sidebar-dot" id="dot-5" onclick="goTo(5)" title="Backend"><span class="dot-num">04</span><span class="dot-label">Backend</span></div>
+<div class="sidebar-dot" id="dot-6" onclick="goTo(6)" title="Hosting"><span class="dot-num">05</span><span class="dot-label">Hosting</span></div>
+<div class="sidebar-dot" id="dot-7" onclick="goTo(7)" title="GitHub"><span class="dot-num">06</span><span class="dot-label">GitHub</span></div>
+<div class="sidebar-dot" id="dot-8" onclick="goTo(8)" title="Security"><span class="dot-num">07</span><span class="dot-label">Security</span></div>
+<div class="sidebar-dot" id="dot-9" onclick="goTo(9)" title="Beyond"><span class="dot-num">08</span><span class="dot-label">Beyond</span></div>
+
+  <div class="sidebar-dot" id="dot-10" onclick="goTo(10)" title="Launch"><span class="dot-num">09</span><span class="dot-label">Launch</span></div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-dot" onclick="showGlossary()">
+    <span class="dot-num">A–Z</span>
+    <span class="dot-label">Glossary</span>
+  </div>
+</div>
+<div class="pages-viewport" id="pagesViewport"><div class="pages-container" id="pagesContainer"><div class="page" id="page-0" data-page="0">
+  <div class="page-inner"><section id="setup">
+  <div class="section-header reveal">
+    <div class="section-number">00</div>
+    <div class="section-title-block">
+      <div class="section-label">Before Anything Else</div>
+      <div class="section-title">GET YOUR MACHINE READY</div>
+      <p class="section-desc">Zero assumptions. If you've never opened a terminal, start here. This gets you from a brand-new computer to running Claude Code in about 20 minutes.</p>
+    </div>
+  </div>
+
+  <!-- OS TOGGLE -->
+  <div class="os-toggle reveal">
+    <button class="os-btn active" id="os-mac" onclick="switchOS('mac')">🍎 Mac</button>
+    <button class="os-btn" id="os-win" onclick="switchOS('win')">🪟 Windows</button>
+  </div>
+
+  <!-- MAC TRACK -->
+  <div id="track-mac" class="os-track">
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 1</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Open the Terminal</div>
+        <div class="setup-step-desc">The terminal is a text window where you type commands to control your computer. Think of it as talking directly to your Mac without clicking anything.</div>
+        <div class="setup-how">
+          <div class="setup-how-label">How to open it</div>
+          Press <kbd>⌘ Command</kbd> + <kbd>Space</kbd> to open Spotlight, type <strong>Terminal</strong>, hit Enter. You'll see a black or white window with a blinking cursor. That's it — you're in.
+        </div>
+        <div class="callout tip" style="margin-top:16px;">
+          <div class="callout-label">💡 Pro tip</div>
+          <p>Drag Terminal to your Dock now. You'll use it constantly. Alternatively, download <strong>iTerm2</strong> — it's a better terminal app, free, and what most developers use.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 2</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Homebrew (Mac's Package Manager)</div>
+        <div class="setup-step-desc">Homebrew lets you install developer tools with a single command. You need this to install Node.js cleanly. Copy the command below, paste it into your terminal, and press Enter.</div>
+        <div class="code-block">
+<span class="comment"># Paste this entire line into your terminal and hit Enter</span>
+<span class="highlight">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span>
+
+<span class="comment"># It will ask for your Mac password — type it (nothing will show) and hit Enter</span>
+<span class="comment"># Takes 2-5 minutes. When done, verify with:</span>
+brew --version
+        </div>
+        <div class="callout info">
+          <div class="callout-label">ℹ️ What's happening</div>
+          <p>The terminal will show a lot of text scrolling by — that's normal. It's downloading and installing Homebrew. When you see a <strong>$</strong> prompt again, it's done.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 3</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Node.js</div>
+        <div class="setup-step-desc">Node.js lets your computer run JavaScript outside a browser. Claude Code requires it. With Homebrew installed, this is one command.</div>
+        <div class="code-block">
+<span class="comment"># Install Node.js via Homebrew</span>
+<span class="highlight">brew install node</span>
+
+<span class="comment"># Verify — should print something like "v20.x.x"</span>
+node --version
+
+<span class="comment"># Also verify npm installed alongside it</span>
+npm --version
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 4</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Claude Code</div>
+        <div class="setup-step-desc">Now install Claude Code — Anthropic's CLI tool that lets you build with Claude directly from your terminal.</div>
+        <div class="code-block">
+<span class="comment"># Install Claude Code globally via npm</span>
+<span class="highlight">npm install -g @anthropic-ai/claude-code</span>
+
+<span class="comment"># Verify it installed</span>
+claude --version
+
+<span class="comment"># Launch it (always run this from inside your project folder)</span>
+claude
+        </div>
+        <div class="callout tip" style="margin-top:16px;">
+          <div class="callout-label">⚡ First Launch</div>
+          <p>The first time you run <code>claude</code>, it will ask you to log in with your Anthropic account. You need a <strong>Pro or Max plan</strong> at claude.ai to use Claude Code.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 5</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install VS Code (Your Code Editor)</div>
+        <div class="setup-step-desc">You need a place to view and manually edit files. VS Code is free, universally used, and works great alongside Claude Code.</div>
+        <div class="setup-how">
+          <div class="setup-how-label">Download and install</div>
+          Go to <strong>code.visualstudio.com</strong> → Download for Mac → Open the .zip → Drag VS Code to your Applications folder.
+        </div>
+        <div class="code-block">
+<span class="comment"># Add the 'code' command to your terminal:</span>
+<span class="comment"># Open VS Code → press ⌘ Shift P → type "shell command"</span>
+<span class="comment"># → click "Install 'code' command in PATH"</span>
+
+<span class="comment"># Now open any folder in VS Code directly from terminal:</span>
+<span class="highlight">code .</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 6</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Git and Set Up GitHub</div>
+        <div class="setup-step-desc">Git tracks every change to your code. GitHub stores it in the cloud. Vercel deploys from GitHub. This chain is your entire delivery pipeline.</div>
+        <div class="code-block">
+<span class="comment"># Install latest Git via Homebrew</span>
+<span class="highlight">brew install git</span>
+
+<span class="comment"># Tell Git who you are (use your GitHub email)</span>
+git config --global user.name "Your Name"
+git config --global user.email "<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8cf5e3f9cce9f4ede1fce0e9a2efe3e1">[email&#160;protected]</a>"
+
+<span class="comment"># Verify</span>
+git --version
+        </div>
+        <div class="setup-how" style="margin-top:16px;">
+          <div class="setup-how-label">GitHub account</div>
+          Go to <strong>github.com</strong> → Sign up (free) → Create a new <strong>private</strong> repository for your project.
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 7</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Create Your First Project and Start Building</div>
+        <div class="setup-step-desc">Everything is installed. Here's the exact sequence to go from zero to Claude Code running in a real project.</div>
+        <div class="code-block">
+<span class="comment"># Go to your Desktop (or wherever you keep projects)</span>
+cd ~/Desktop
+
+<span class="comment"># Create a new Next.js app — say Yes to all the defaults</span>
+<span class="highlight">npx create-next-app@latest my-app</span>
+
+<span class="comment"># Move into the new project folder</span>
+cd my-app
+
+<span class="comment"># Open it in VS Code to browse your files</span>
+code .
+
+<span class="comment"># Launch Claude Code inside the project</span>
+<span class="highlight">claude</span>
+
+<span class="comment"># You're in. Start with:</span>
+<span class="comment"># "Here's what I'm building: [your idea]. Let's start."</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end mac track -->
+
+  <!-- WINDOWS TRACK -->
+  <div id="track-win" class="os-track" style="display:none;">
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 1</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Open Windows Terminal</div>
+        <div class="setup-step-desc">Windows Terminal is the modern command-line app. It's built into Windows 10 and 11. Think of it as the control panel behind your computer — text commands instead of clicking.</div>
+        <div class="setup-how">
+          <div class="setup-how-label">How to open it</div>
+          Press <kbd>Win</kbd> + <kbd>S</kbd>, type <strong>Terminal</strong> or <strong>PowerShell</strong>, right-click → <strong>Run as administrator</strong>. If you don't have Windows Terminal, download it free from the Microsoft Store.
+        </div>
+        <div class="callout tip" style="margin-top:16px;">
+          <div class="callout-label">💡 Pin it</div>
+          <p>Right-click Windows Terminal in your taskbar → Pin to taskbar. <strong>Always run it as administrator</strong> when installing developer tools.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 2</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Node.js</div>
+        <div class="setup-step-desc">Download Node.js directly from the official site. This also installs npm — the package manager you'll use for everything.</div>
+        <div class="setup-how">
+          <div class="setup-how-label">Download</div>
+          Go to <strong>nodejs.org</strong> → Download the <strong>LTS version</strong> → Run the installer → Click through all defaults. When asked about "Tools for Native Modules," check that box.
+        </div>
+        <div class="code-block">
+<span class="comment"># After install, close and reopen your terminal, then verify:</span>
+node --version   <span class="comment"># Should show v18.x.x or higher</span>
+npm --version    <span class="comment"># Should show 9.x.x or higher</span>
+        </div>
+        <div class="callout info">
+          <div class="callout-label">ℹ️ Not working?</div>
+          <p>If <code>node</code> isn't recognized, <strong>fully close and reopen your terminal.</strong> Windows needs to reload its PATH. If still broken, restart your computer.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 3</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Claude Code</div>
+        <div class="setup-step-desc">With Node installed, Claude Code is one command away.</div>
+        <div class="code-block">
+<span class="comment"># Run in terminal as administrator</span>
+<span class="highlight">npm install -g @anthropic-ai/claude-code</span>
+
+<span class="comment"># If you get a permissions error, run this first:</span>
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+<span class="comment"># Then retry the install above</span>
+
+<span class="comment"># Verify it installed</span>
+claude --version
+
+<span class="comment"># Launch it</span>
+claude
+        </div>
+        <div class="callout tip" style="margin-top:16px;">
+          <div class="callout-label">⚡ First Launch</div>
+          <p>It will prompt you to log in with your Anthropic account. You need a <strong>Pro or Max plan</strong> at claude.ai to use Claude Code.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 4</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install VS Code</div>
+        <div class="setup-step-desc">Your code editor — free, fast, and the industry standard.</div>
+        <div class="setup-how">
+          <div class="setup-how-label">Download and install</div>
+          Go to <strong>code.visualstudio.com</strong> → Download for Windows → Run the installer → On the "Additional Tasks" screen, check <strong>"Add to PATH"</strong> (critical).
+        </div>
+        <div class="code-block">
+<span class="comment"># After install, open a new terminal and verify:</span>
+<span class="highlight">code --version</span>
+
+<span class="comment"># Open any project folder in VS Code:</span>
+code .
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 5</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Install Git and Set Up GitHub</div>
+        <div class="setup-step-desc">Git doesn't come pre-installed on Windows. Get it from the official site.</div>
+        <div class="setup-how">
+          <div class="setup-how-label">Download</div>
+          Go to <strong>git-scm.com</strong> → Download for Windows → Run the installer → Use all defaults. When asked for default editor, pick VS Code.
+        </div>
+        <div class="code-block">
+<span class="comment"># Open a new terminal after install, then configure:</span>
+<span class="highlight">git config --global user.name "Your Name"</span>
+git config --global user.email "<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="bcc5d3c9fcd9c4ddd1ccd0d992dfd3d1">[email&#160;protected]</a>"
+
+git --version   <span class="comment"># Verify</span>
+        </div>
+        <div class="setup-how" style="margin-top:16px;">
+          <div class="setup-how-label">GitHub account</div>
+          Go to <strong>github.com</strong> → Sign up free → Create a new <strong>private</strong> repo for your project.
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-step reveal">
+      <div class="setup-step-num">Step 6</div>
+      <div class="setup-step-body">
+        <div class="setup-step-title">Create Your First Project and Start Building</div>
+        <div class="setup-step-desc">All tools installed. Here's the exact sequence to spin up a project and get into Claude Code.</div>
+        <div class="code-block">
+<span class="comment"># Navigate to your Documents folder (or wherever you keep projects)</span>
+cd C:\Users\YourName\Documents
+
+<span class="comment"># Create a new Next.js app — say Yes to all the defaults</span>
+<span class="highlight">npx create-next-app@latest my-app</span>
+
+<span class="comment"># Move into the project folder</span>
+cd my-app
+
+<span class="comment"># Open in VS Code</span>
+code .
+
+<span class="comment"># Launch Claude Code</span>
+<span class="highlight">claude</span>
+
+<span class="comment"># Start with:</span>
+<span class="comment"># "Here's what I'm building: [your idea]. Let's start."</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end windows track -->
+
+  <hr class="divider">
+  <h3 style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:0.05em;margin-bottom:20px;" class="reveal">SETUP CHECKLIST</h3>
+  <div class="checklist reveal">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Terminal is open and working<span>Mac: Terminal.app or iTerm2 · Windows: Windows Terminal (run as admin)</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Node.js installed — node --version shows v18 or higher<span>Mac: brew install node · Windows: nodejs.org LTS installer</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Claude Code installed — claude --version works<span>npm install -g @anthropic-ai/claude-code</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Logged in to Claude Code with Anthropic account<span>Pro or Max plan required at claude.ai</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">VS Code installed — code . opens a folder from terminal<span>code.visualstudio.com · Add to PATH during install (Windows)</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Git configured with your name and email<span>git config --global user.name / user.email</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">GitHub account created — first private repo ready<span>github.com · free plan · always private by default</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">First Next.js project created with npx create-next-app<span>cd into folder → run claude → you're live</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-1" data-page="1">
+  <div class="page-inner"><section id="start-here">
+  <div class="flow-header reveal">
+    <div class="section-label" style="justify-content:center; display:flex; margin-bottom:12px;">Before You Write a Single Prompt</div>
+    <div class="section-title" style="font-family:'Bebas Neue',sans-serif; font-size:clamp(36px,4vw,56px); letter-spacing:0.02em;">THE BUILD SEQUENCE</div>
+    <p style="color:var(--muted); font-size:15px; max-width:560px; margin:16px auto 0; line-height:1.7;">Every product follows the same arc. Don't skip steps. Each phase feeds the next. Click any node to jump to that section.</p>
+  </div>
+
+  <div class="flow-grid reveal">
+    <div class="flow-connector"></div>
+
+    <div class="flow-step">
+      <a class="flow-node" href="#features" onclick="showTab('guide')">
+        <span class="flow-node-num">01</span>
+        <span class="flow-node-icon">🗺️</span>
+      </a>
+      <div class="flow-step-title">DEFINE</div>
+      <div class="flow-step-sub">What you're building & for who</div>
+      <div class="flow-time">Day 1 — 2 hrs</div>
+    </div>
+
+    <div class="flow-step">
+      <a class="flow-node" href="#backend" onclick="showTab('guide')">
+        <span class="flow-node-num">02</span>
+        <span class="flow-node-icon">🗄️</span>
+      </a>
+      <div class="flow-step-title">BACKEND</div>
+      <div class="flow-step-sub">Database, auth, API keys</div>
+      <div class="flow-time">Day 1–2 — 4 hrs</div>
+    </div>
+
+    <div class="flow-step">
+      <a class="flow-node" href="#uiux" onclick="showTab('guide')">
+        <span class="flow-node-num">03</span>
+        <span class="flow-node-icon">🎨</span>
+      </a>
+      <div class="flow-step-title">FRONTEND</div>
+      <div class="flow-step-sub">UI, UX, animations, mobile</div>
+      <div class="flow-time">Day 2–4 — ongoing</div>
+    </div>
+
+    <div class="flow-step">
+      <a class="flow-node" href="#security" onclick="showTab('guide')">
+        <span class="flow-node-num">04</span>
+        <span class="flow-node-icon">🛡️</span>
+      </a>
+      <div class="flow-step-title">SECURE</div>
+      <div class="flow-step-sub">RLS, env vars, rate limits</div>
+      <div class="flow-time">Before launch — 2 hrs</div>
+    </div>
+
+    <div class="flow-step">
+      <a class="flow-node" href="#hosting" onclick="showTab('guide')">
+        <span class="flow-node-num">05</span>
+        <span class="flow-node-icon">🚀</span>
+      </a>
+      <div class="flow-step-title">SHIP IT</div>
+      <div class="flow-step-sub">GitHub → Vercel → domain</div>
+      <div class="flow-time">Day 2 onward — 1 hr</div>
+    </div>
+  </div>
+
+  <div class="flow-details reveal">
+    <div class="flow-detail-card">
+      <div class="flow-detail-label" style="color:var(--accent);">01 / Define</div>
+      <div class="flow-detail-item"><strong>User story doc</strong>Who uses this & why</div>
+      <div class="flow-detail-item"><strong>Feature list</strong>MVP only — tag the rest</div>
+      <div class="flow-detail-item"><strong>CLAUDE.md</strong>Your project brief for every session</div>
+      <div class="flow-detail-item"><strong>Stack decision</strong>Next.js + Supabase + Vercel</div>
+    </div>
+    <div class="flow-detail-card">
+      <div class="flow-detail-label" style="color:#a8ff78;">02 / Backend</div>
+      <div class="flow-detail-item"><strong>Supabase project</strong>DB + auth + storage</div>
+      <div class="flow-detail-item"><strong>Schema design</strong>Tables before UI</div>
+      <div class="flow-detail-item"><strong>RLS policies</strong>Non-negotiable from day one</div>
+      <div class="flow-detail-item"><strong>Env vars</strong>Keys in .env, not in code</div>
+    </div>
+    <div class="flow-detail-card">
+      <div class="flow-detail-label" style="color:var(--accent3);">03 / Frontend</div>
+      <div class="flow-detail-item"><strong>Static mockup first</strong>Validate UX before wiring</div>
+      <div class="flow-detail-item"><strong>shadcn/ui</strong>Components, not from scratch</div>
+      <div class="flow-detail-item"><strong>Animations</strong>Ask explicitly — won't happen otherwise</div>
+      <div class="flow-detail-item"><strong>Mobile-first</strong>Declare it upfront every time</div>
+    </div>
+    <div class="flow-detail-card">
+      <div class="flow-detail-label" style="color:#c084fc;">04 / Secure</div>
+      <div class="flow-detail-item"><strong>RLS audit</strong>Every table, every operation</div>
+      <div class="flow-detail-item"><strong>Input sanitization</strong>Every form, every endpoint</div>
+      <div class="flow-detail-item"><strong>Rate limiting</strong>Upstash Redis, one prompt</div>
+      <div class="flow-detail-item"><strong>Claude audit</strong>"Find security issues in this codebase"</div>
+    </div>
+    <div class="flow-detail-card">
+      <div class="flow-detail-label" style="color:var(--accent2);">05 / Ship</div>
+      <div class="flow-detail-item"><strong>GitHub (private)</strong>Repo before first commit</div>
+      <div class="flow-detail-item"><strong>Vercel deploy</strong>Connect repo, set env vars</div>
+      <div class="flow-detail-item"><strong>Custom domain</strong>Day one. $12. Non-negotiable.</div>
+      <div class="flow-detail-item"><strong>Preview deploys</strong>Every PR gets its own URL</div>
+    </div>
+  </div>
+
+  <div class="callout tip reveal" style="margin-top:40px;">
+    <div class="callout-label">⚡ The Rule of Thumb</div>
+    <p><strong>Backend before frontend. Security before launch. Ship before perfect.</strong> The sequence matters. Building UI before your schema is defined = rebuilding UI. Launching without RLS = a breach waiting to happen. Waiting until it's "ready" = never shipping.</p>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-2" data-page="2">
+  <div class="page-inner"><section id="prompting">
+  <div class="section-header reveal">
+    <div class="section-number">01</div>
+    <div class="section-title-block">
+      <div class="section-label">The Foundation</div>
+      <div class="section-title">PROMPTING LIKE YOU MEAN IT</div>
+      <p class="section-desc">Bad prompts waste hours. Great prompts ship products. Here's how to talk to Claude Code like a founder, not a confused user.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">You're the CEO. Claude is your engineer. Prompts are your briefs.</div>
+    <div class="explainer-body">
+      A <strong>prompt</strong> is just the message you type to Claude. But like any good hire, Claude performs best when you give it full context — not just "make a login page" but <em>who it's for, what stack you're using, what it should look like, and what not to break.</em>
+      <br><br>
+      Think of every prompt as a one-paragraph brief to a contractor. The more specific you are upfront, the less you go back-and-forth. The less you go back-and-forth, the faster you ship.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">💬</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> Imagine hiring a brilliant but literal-minded freelancer on Upwork. If you say "design my website," you'll get something generic. If you say "design my SaaS dashboard — dark theme, data-dense, inspired by Linear, using these colors" — you get something useful on the first try. Same energy.</div>
+    </div>
+  </div>
+  <div class="callout tip reveal">
+    <div class="callout-label">⚡ The Core Rule</div>
+    <p><strong>Claude Code is not a search engine. It's a senior engineer who needs a brief.</strong> The more context, constraints, and clarity you give upfront, the less back-and-forth you waste. Think of it like onboarding a contractor in a single message.</p>
+  </div>
+
+  <div class="two-col reveal">
+    <div>
+      <div class="col-label red">✗ Weak Prompt</div>
+      <div class="prompt-example">
+        <div class="prompt-header"><span>What you said</span><span class="prompt-badge bad">VAGUE</span></div>
+        <div class="prompt-body">"Make me a landing page for my startup."</div>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-top:12px;">You'll get a generic template. No personality, wrong assumptions, 10 revisions ahead.</p>
+    </div>
+    <div>
+      <div class="col-label green">✓ Strong Prompt</div>
+      <div class="prompt-example">
+        <div class="prompt-header"><span>What you should say</span><span class="prompt-badge">CLEAR</span></div>
+        <div class="prompt-body">"Build a landing page for Launchpad, a project management tool for remote teams. Dark background, minimal, one CTA: 'Start Free Trial'. Hero headline: 'Ship faster, together.' Use Next.js and Tailwind."</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card-grid reveal">
+    <div class="card">
+      <span class="card-icon">🗂️</span>
+      <div class="card-title">Give it a CLAUDE.md file</div>
+      <div class="card-text"><span class="card-what">What it is</span>A plain text file named <strong>CLAUDE.md</strong> that lives in your project folder. Claude reads it automatically at the start of every session — like handing a new hire your company handbook on day one. No hunting through old conversations. No re-explaining your stack.<br><br>Write: your tech choices, your design rules, what Claude should never touch. One setup, infinite sessions.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🎯</span>
+      <div class="card-title">One Task Per Prompt</div>
+      <div class="card-text">Don't chain 5 things in one message. <strong>"Build the auth flow. Then the dashboard. Then..."</strong> — pick one thing, get it done, move on. Claude loses context on sprawling asks.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧠</span>
+      <div class="card-title">Tell Claude what you want, not how to build it</div>
+      <div class="card-text">Say <strong>"I want a button that saves the user's email to Supabase"</strong> — not "write a POST request to..." Let Claude figure out the implementation.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔁</span>
+      <div class="card-title">Use /compact to clear Claude's memory</div>
+      <div class="card-text"><span class="card-what">What it is</span>Claude has a memory limit — after enough back-and-forth, it starts "forgetting" earlier context and making mistakes. Type <strong>/compact</strong> and Claude summarizes everything important into a fresh start, without losing your work.<br><br>Think of it like saving your game before a boss fight. Do it every 20–30 messages, or whenever Claude starts giving weird answers.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📸</span>
+      <div class="card-title">Show Claude, don't describe</div>
+      <div class="card-text"><span class="card-what">Why it works</span>Claude can see images. Instead of typing "make it look clean and modern like Stripe," drag a screenshot of Stripe's dashboard directly into the chat. Visual reference beats verbal description every time — Claude matches layout, spacing, and color choices from a real image far better than from adjectives.<br><br>Drag a screenshot of a UI you love directly into Claude Code. Say <strong>"make mine look like this"</strong>. Visual reference beats 500 words of description every time.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">⛔</span>
+      <div class="card-title">Constraints are your friend</div>
+      <div class="card-text">Tell Claude what you <strong>don't want</strong>: "Don't add a sidebar. Don't use TypeScript. Don't install new packages." Guardrails prevent scope creep.</div>
+    </div>
+  </div>
+
+  <div class="callout reveal" style="margin-top:32px;">
+    <div class="callout-label">🔥 Power Prompts to Steal</div>
+    <p>
+      <strong>"Think step by step before writing any code."</strong> Adds a reasoning pass.<br><br>
+      <strong>"Explain what you're about to do before doing it."</strong> Catches misalignment early.<br><br>
+      <strong>"Don't change anything I didn't ask you to change."</strong> Stops scope creep.<br><br>
+      <strong>"If you're unsure about my intent, ask before building."</strong> Saves full rebuilds.
+    </p>
+  </div>
+
+  <hr class="divider">
+  <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.05em; margin-bottom: 20px;" class="reveal">PROMPTING CHECKLIST</h3>
+  <div class="checklist reveal">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up CLAUDE.md in your project root<span>Stack, conventions, do's and don'ts — your persistent brief</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Include your tech stack in every session opener<span>"We're using Next.js 14, Tailwind, Supabase, deployed on Vercel"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Describe the user and the outcome before the feature<span>Who uses this, what are they trying to do, what does success look like</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">One feature per prompt (max)<span>Atomic tasks = faster, cleaner output</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Paste error messages verbatim when debugging<span>Don't summarize them — Claude needs the raw stack trace</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Use /compact every 20-30 messages<span>Keeps context sharp, avoids drift</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Screenshot reference UI instead of describing it<span>Drag + drop beats 200 words every time</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-3" data-page="3">
+  <div class="page-inner"><section id="features">
+  <div class="section-header reveal">
+    <div class="section-number">02</div>
+    <div class="section-title-block">
+      <div class="section-label">Planning</div>
+      <div class="section-title">DEFINING YOUR FEATURES</div>
+      <p class="section-desc">Before you build, lock down what you're building. Claude will happily build everything you ask — including stuff you don't need.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">A feature is anything your user can do. Start with the 3 that matter most.</div>
+    <div class="explainer-body">
+      Before you write a single prompt, you need a list of <strong>what your product actually does</strong>. Claude will happily build anything you ask — including things you don't need yet. A feature list keeps you from building a dashboard before you have users.
+      <br><br>
+      The format that works best: <em>"As a [type of user], I want to [do something] so that [outcome]."</em> This forces you to think from your user's perspective, not just what's cool to build.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">🏗️</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> You wouldn't hire an architect and say "build me a house." You'd give them a brief: 3 bedrooms, open kitchen, no formal dining room. Feature stories are your product brief. Without them, Claude builds a house with 6 bathrooms and no kitchen.</div>
+    </div>
+  </div>
+  <div class="callout info reveal">
+    <div class="callout-label">📐 Do This First</div>
+    <p><strong>Write your feature list as user stories before touching Claude Code.</strong> "As a [user], I want to [action] so that [outcome]." It forces clarity. Claude then translates it into code, not assumptions.</p>
+  </div>
+
+  <div class="card-grid reveal">
+    <div class="card">
+      <span class="card-icon">🗺️</span>
+      <div class="card-title">Start with a scope doc</div>
+      <div class="card-text"><span class="card-what">What it is</span>A simple list of every feature your product needs — written in plain language, not code. Before you touch Claude Code, paste this list into a regular Claude chat and ask: <strong>"help me prioritize this for an MVP."</strong><br><br>Claude will cut the list down to what actually matters for a first user, and put the rest in a "later" column. Then you build in that exact order. No scope creep. No 3-month builds.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🚦</span>
+      <div class="card-title">MVP vs V2 vs Someday — tag everything</div>
+      <div class="card-text"><span class="card-what">What MVP means</span>Minimum Viable Product — the smallest version of your idea that a real person would actually use. Not everything. Not polished. Just the one core thing that works.<br><br>Tag every feature: <strong>MVP</strong> = must have for first user. <strong>V2</strong> = adds after first 10 users. <strong>Someday</strong> = only if it becomes a real business. Ship MVP only.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">💬</span>
+      <div class="card-title">Ask Claude to challenge you</div>
+      <div class="card-text">Prompt: <strong>"Here's my feature list. Play devil's advocate — what am I building that users probably don't care about?"</strong> Brutal but useful.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔗</span>
+      <div class="card-title">Map dependencies first</div>
+      <div class="card-text">Some features depend on others. Auth before dashboard. Database schema before forms. Tell Claude: <strong>"What's the correct build order for these features?"</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📋</span>
+      <div class="card-title">Write a PRD, paste it in</div>
+      <div class="card-text">Even a one-pager. Product, users, problem, success metrics. Claude builds with more precision when it understands <strong>why</strong>, not just what.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🎪</span>
+      <div class="card-title">Fake it first</div>
+      <div class="card-text">Build a static mockup with hardcoded data before wiring up the backend. Validate the UX is right. Then make it real. Saves massive rework.</div>
+    </div>
+  </div>
+
+  <div class="checklist reveal" style="margin-top:32px;">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Write user stories for every feature before prompting<span>"As a [user], I want to [X] so that [Y]"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Tag features: MVP / V2 / Someday<span>Only build MVP until you have real users</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Ask Claude to identify the build order<span>Avoid blocked dependencies mid-sprint</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Build a static mockup before wiring the backend<span>Validate UX first, then make it real</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Have Claude review your feature list for bloat<span>"What am I overbuilding for my stage?"</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-4" data-page="4">
+  <div class="page-inner"><section id="uiux">
+  <div class="section-header reveal">
+    <div class="section-number">03</div>
+    <div class="section-title-block">
+      <div class="section-label">Design &amp; Feel</div>
+      <div class="section-title">UI / UX THAT DOESN'T SUCK</div>
+      <p class="section-desc">Claude can make things beautiful. But it defaults to generic. Push it. Every effect below is live — interact with it, then steal the prompt and code.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">UI is what it looks like. UX is how it feels to use. Both are learnable.</div>
+    <div class="explainer-body">
+      <strong>UI (User Interface)</strong> = the visual layer. Buttons, colors, fonts, layout. <strong>UX (User Experience)</strong> = how smooth and intuitive it is to actually use. You've experienced bad UX every time an app made you feel dumb. Good UX is invisible — it just works.
+      <br><br>
+      Claude can produce both — but only if you <em>push it with specific references and explicit animation requests.</em> Left to its defaults, it builds functional but forgettable. The prompts in this section are how you close that gap.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">🎬</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> UI is the set design and costumes of a film. UX is the pacing, the score, the editing — how the whole thing flows. A great movie needs both. Your product does too. "Clean and modern" is not a direction. "Like Airbnb's checkout flow, minimal, one action per screen" is.</div>
+    </div>
+  </div>
+  <div class="callout tip reveal">
+    <div class="callout-label">🎨 The Golden Rule</div>
+    <p><strong>Reference real products you love.</strong> "Make it feel like Linear's onboarding." "Match the density of Notion." "Transition like the iPhone's springboard." Shared vocabulary beats abstract adjectives.</p>
+  </div>
+
+
+  <hr class="divider">
+  <div class="checklist reveal">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Specify animations explicitly in your prompts<span>Claude won't add motion unless you ask</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Add hover states to every interactive element<span>Scale, color shift, shadow — pick one, be consistent</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Implement scroll-triggered reveals<span>IntersectionObserver + CSS transitions = perceived polish</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Add haptic feedback to key mobile actions<span>navigator.vibrate() for web, expo-haptics for React Native</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Build loading, success, and error states for every async action<span>Skeleton loaders &gt; spinners &gt; blank screens</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Declare mobile-first at the start of every UI prompt<span>Or Claude will assume desktop layout</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Reference real apps for aesthetic direction<span>"Like Linear" / "Like Notion" beats "clean and modern"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Test on a real device before calling it done<span>Browser DevTools lies. Your thumb doesn't.</span></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="ui-playground" style="background:var(--surface); border-bottom: 1px solid var(--border);">
+  <div class="section-header reveal">
+    <div class="section-number" style="color:var(--accent3);">✦</div>
+    <div class="section-title-block">
+      <div class="section-label">Interactive Demos</div>
+      <div class="section-title">EFFECTS PLAYGROUND</div>
+      <p class="section-desc">Every effect below is live. Interact with the preview on the left, grab the prompt and code on the right. Copy → paste into Claude Code → done.</p>
+    </div>
+  </div>
+
+  <!-- DEMO GRID -->
+  <div class="demo-grid">
+
+    <!-- 1. HOVER ZOOM & SCALE -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">01</span>
+        <span class="demo-title">Hover Zoom &amp; Scale</span>
+        <span class="demo-tag">CSS Transform</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">INTERACTIVE PREVIEW</div>
+          <div class="hover-demo-grid">
+            <div class="hd-card">
+              <div class="hd-img" style="background:linear-gradient(135deg,#e8ff47,#47d4ff)"></div>
+              <div class="hd-text">Hover me</div>
+            </div>
+            <div class="hd-card">
+              <div class="hd-img" style="background:linear-gradient(135deg,#ff6b35,#c084fc)"></div>
+              <div class="hd-text">And me</div>
+            </div>
+            <div class="hd-card">
+              <div class="hd-img" style="background:linear-gradient(135deg,#47d4ff,#a8ff78)"></div>
+              <div class="hd-text">Me too</div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','hover')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','hover')">CSS Code</button>
+          </div>
+          <div class="demo-tab-content" data-demo="hover" data-type="prompt">
+"Add hover effects to each card:
+scale up to 1.04, lift with a
+subtle shadow, and zoom the
+image inside to 108%.
+Use 200ms ease transitions.
+No layout shift."</div>
+          <div class="demo-tab-content hidden" data-demo="hover" data-type="code">.card {
+  transition: transform 200ms ease,
+    box-shadow 200ms ease;
+  overflow: hidden;
+}
+.card:hover {
+  transform: scale(1.04);
+  box-shadow: 0 20px 40px
+    rgba(0,0,0,0.3);
+}
+.card .img {
+  transition: transform 200ms ease;
+}
+.card:hover .img {
+  transform: scale(1.08);
+}</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. SCROLL REVEAL -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">02</span>
+        <span class="demo-title">Scroll Reveal</span>
+        <span class="demo-tag">IntersectionObserver</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">CLICK TO REPLAY</div>
+          <div class="scroll-demo-wrap" id="scrollDemoWrap">
+            <div class="sd-item" style="transition-delay:0ms">Item One</div>
+            <div class="sd-item" style="transition-delay:80ms">Item Two</div>
+            <div class="sd-item" style="transition-delay:160ms">Item Three</div>
+            <div class="sd-item" style="transition-delay:240ms">Item Four</div>
+          </div>
+          <button class="demo-replay-btn" onclick="replayScroll()">↺ Replay</button>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','scroll')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','scroll')">JS + CSS</button>
+          </div>
+          <div class="demo-tab-content" data-demo="scroll" data-type="prompt">
+"Use IntersectionObserver so
+each section fades up as it
+enters the viewport. Start
+invisible at translateY(24px),
+animate to visible on scroll.
+Stagger children by 80ms each."</div>
+          <div class="demo-tab-content hidden" data-demo="scroll" data-type="code">.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.5s ease,
+    transform 0.5s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+// JS
+const obs = new IntersectionObserver(
+  entries => entries.forEach(e => {
+    if (e.isIntersecting)
+      e.target.classList.add('visible')
+  }), { threshold: 0.15 }
+)
+document.querySelectorAll('.reveal')
+  .forEach(el => obs.observe(el))</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. BUTTON PRESS -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">03</span>
+        <span class="demo-title">Button Press Animation</span>
+        <span class="demo-tag">Active State</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">CLICK THE BUTTONS</div>
+          <div class="btn-demo-wrap">
+            <button class="demo-btn-primary">Primary CTA</button>
+            <button class="demo-btn-secondary">Secondary</button>
+            <button class="demo-btn-ghost">Ghost</button>
+          </div>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','btn')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','btn')">CSS Code</button>
+          </div>
+          <div class="demo-tab-content" data-demo="btn" data-type="prompt">
+"All buttons need: a subtle
+scale-down on press (0.96),
+a spring-back on release,
+and a ripple effect on click.
+Primary: filled accent color.
+Secondary: outlined.
+Ghost: text only with underline
+on hover. 150ms transitions."</div>
+          <div class="demo-tab-content hidden" data-demo="btn" data-type="code">button {
+  transition: transform 150ms ease,
+    box-shadow 150ms ease;
+  position: relative;
+  overflow: hidden;
+}
+button:active {
+  transform: scale(0.96);
+}
+/* Ripple */
+button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.15);
+  opacity: 0;
+  transition: opacity 300ms;
+}
+button:active::after {
+  opacity: 1;
+}</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. SKELETON LOADER -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">04</span>
+        <span class="demo-title">Skeleton Loader</span>
+        <span class="demo-tag">Loading State</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">CLICK TO TOGGLE</div>
+          <div class="skeleton-demo-wrap" id="skelWrap">
+            <div class="skel-card" id="skelCard">
+              <div class="skel-avatar skel-pulse"></div>
+              <div class="skel-lines">
+                <div class="skel-line skel-pulse" style="width:80%"></div>
+                <div class="skel-line skel-pulse" style="width:60%"></div>
+                <div class="skel-line skel-pulse" style="width:90%"></div>
+              </div>
+            </div>
+            <div class="real-card hidden" id="realCard">
+              <div class="real-avatar">AK</div>
+              <div class="real-lines">
+                <div class="real-name">Alex Kim</div>
+                <div class="real-role">Senior Engineer · Stripe</div>
+                <div class="real-bio">Building the future of payments infrastructure since 2019.</div>
+              </div>
+            </div>
+          </div>
+          <button class="demo-replay-btn" onclick="toggleSkeleton()">↺ Toggle</button>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','skel')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','skel')">CSS Code</button>
+          </div>
+          <div class="demo-tab-content" data-demo="skel" data-type="prompt">
+"While data is fetching, show
+a skeleton loader that matches
+the content layout — avatar
+circle + 3 text lines. Use a
+pulsing shimmer animation in
+CSS only, no library. Fade
+smoothly to real content when
+data loads."</div>
+          <div class="demo-tab-content hidden" data-demo="skel" data-type="code">@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #1c2333 25%,
+    #2a2a2a 50%,
+    #1c2333 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s
+    infinite linear;
+  border-radius: 4px;
+}
+.avatar.skeleton {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+}</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. PAGE LOAD STAGGER -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">05</span>
+        <span class="demo-title">Page Load Stagger</span>
+        <span class="demo-tag">CSS Animation</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">CLICK TO REPLAY</div>
+          <div class="stagger-demo-wrap" id="staggerWrap">
+            <div class="stagger-tag stagger-item" style="animation-delay:0ms">Future of Work</div>
+            <h2 class="stagger-h stagger-item" style="animation-delay:100ms">Build What<br>Matters</h2>
+            <p class="stagger-p stagger-item" style="animation-delay:220ms">Ship your idea before someone else does. Claude Code removes every excuse.</p>
+            <button class="stagger-cta stagger-item" style="animation-delay:340ms">Get Started →</button>
+          </div>
+          <button class="demo-replay-btn" onclick="replayStagger()">↺ Replay</button>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','stagger')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','stagger')">CSS Code</button>
+          </div>
+          <div class="demo-tab-content" data-demo="stagger" data-type="prompt">
+"On page load, animate the hero:
+tag fades in first (0ms delay),
+then headline (100ms), then
+subtext (220ms), then CTA button
+(340ms). Each starts invisible
+at translateY(30px), eases up
+to visible. 600ms duration,
+cubic-bezier(0.16,1,0.3,1)."</div>
+          <div class="demo-tab-content hidden" data-demo="stagger" data-type="code">@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stagger-item {
+  animation: fadeUp 600ms
+    cubic-bezier(0.16,1,0.3,1)
+    both;
+}
+/* Set delays in HTML */
+/* animation-delay: 0ms, 100ms,
+   220ms, 340ms ... */</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. HAPTIC FEEDBACK -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">06</span>
+        <span class="demo-title">Haptic Feedback</span>
+        <span class="demo-tag">Mobile / navigator.vibrate</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">ON MOBILE — FEEL THE DIFFERENCE</div>
+          <div class="haptic-demo-wrap">
+            <button class="haptic-btn" onclick="hapticLight(this)">
+              <span>Light Tap</span>
+              <span class="haptic-hint">10ms pulse</span>
+            </button>
+            <button class="haptic-btn" onclick="hapticMedium(this)">
+              <span>Medium</span>
+              <span class="haptic-hint">30ms pulse</span>
+            </button>
+            <button class="haptic-btn" onclick="hapticSuccess(this)">
+              <span>✓ Success</span>
+              <span class="haptic-hint">double pulse</span>
+            </button>
+            <button class="haptic-btn" onclick="hapticError(this)">
+              <span>✗ Error</span>
+              <span class="haptic-hint">triple short</span>
+            </button>
+          </div>
+          <div class="haptic-support-msg" id="hapticMsg"></div>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','haptic')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','haptic')">JS Code</button>
+          </div>
+          <div class="demo-tab-content" data-demo="haptic" data-type="prompt">
+"Add haptic feedback to key
+interactions on mobile:
+- Light tap on any button press
+- Success double-pulse on form
+  submit or save confirmation
+- Triple short burst on errors
+Use navigator.vibrate() with
+a feature check so it only
+runs on supported devices."</div>
+          <div class="demo-tab-content hidden" data-demo="haptic" data-type="code">// Feature-check first
+const canVibrate = 'vibrate' in navigator
+
+// Light tap (button press)
+const hapticLight = () =>
+  canVibrate && navigator.vibrate(10)
+
+// Success (save / submit)
+const hapticSuccess = () =>
+  canVibrate &&
+  navigator.vibrate([50, 30, 50])
+
+// Error (validation fail)
+const hapticError = () =>
+  canVibrate &&
+  navigator.vibrate([30,20,30,20,30])
+
+// Usage
+button.addEventListener('click', () => {
+  hapticLight()
+  // do the thing
+})</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. SUCCESS / ERROR STATES -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">07</span>
+        <span class="demo-title">Success / Error States</span>
+        <span class="demo-tag">Form Feedback</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">INTERACT WITH THE FORM</div>
+          <div class="state-demo-wrap">
+            <div class="state-form" id="stateForm">
+              <input class="state-input" id="stateInput" type="email" placeholder="your@email.com" />
+              <div class="state-error-msg" id="stateError">Please enter a valid email address</div>
+              <div class="state-success-msg" id="stateSuccess">✓ You're on the list!</div>
+              <div class="state-btns">
+                <button class="state-btn-success" onclick="triggerSuccess()">Simulate Success</button>
+                <button class="state-btn-error" onclick="triggerError()">Simulate Error</button>
+                <button class="state-btn-reset" onclick="resetState()">Reset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','state')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','state')">CSS + JS</button>
+          </div>
+          <div class="demo-tab-content" data-demo="state" data-type="prompt">
+"Every form needs 3 states:
+Default (idle), Error (shake
+animation + red border + inline
+message below field), Success
+(green border + checkmark +
+replacement message). Add
+smooth transitions between
+all states. Use CSS classes
+toggled by JS, no libraries."</div>
+          <div class="demo-tab-content hidden" data-demo="state" data-type="code">@keyframes shake {
+  0%,100% { transform: translateX(0) }
+  20% { transform: translateX(-8px) }
+  40% { transform: translateX(8px) }
+  60% { transform: translateX(-6px) }
+  80% { transform: translateX(6px) }
+}
+.input.error {
+  border-color: #ff6b35;
+  animation: shake 400ms ease;
+}
+.input.success {
+  border-color: #a8ff78;
+}
+.error-msg { color: #ff6b35; }
+.success-msg { color: #a8ff78; }
+// JS: toggle classes on submit
+input.classList.add('error')
+// or
+input.classList.add('success')</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. CARD FLIP / 3D -->
+    <div class="demo-card reveal">
+      <div class="demo-label">
+        <span class="demo-num">08</span>
+        <span class="demo-title">Card Flip / 3D</span>
+        <span class="demo-tag">CSS Perspective</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-preview">
+          <div class="demo-preview-label">CLICK OR HOVER THE CARD</div>
+          <div class="flip-demo-wrap">
+            <div class="flip-card" id="flipCard" onclick="this.classList.toggle('flipped')" title="Click to flip">
+              <div class="flip-inner">
+                <div class="flip-front">
+                  <div class="flip-icon">🚀</div>
+                  <div class="flip-title">Front Side</div>
+                  <div class="flip-sub">Click to reveal</div>
+                </div>
+                <div class="flip-back">
+                  <div class="flip-icon">✦</div>
+                  <div class="flip-title">Back Side</div>
+                  <div class="flip-sub">Any content here</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="demo-code-panel">
+          <div class="demo-tabs">
+            <button class="demo-tab active" onclick="switchDemoTab(this,'prompt','flip')">Claude Prompt</button>
+            <button class="demo-tab" onclick="switchDemoTab(this,'code','flip')">CSS Code</button>
+          </div>
+          <div class="demo-tab-content" data-demo="flip" data-type="prompt">
+"Add a 3D card flip effect.
+Front shows a summary, back
+shows detail. Click toggles
+the flip. Use CSS perspective
+and rotateY transform. 500ms
+ease transition. Preserve 3D
+on the container. Works on
+mobile tap too."</div>
+          <div class="demo-tab-content hidden" data-demo="flip" data-type="code">.flip-card {
+  perspective: 1000px;
+  cursor: pointer;
+}
+.flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 500ms ease;
+}
+.flip-card.flipped .flip-inner {
+  transform: rotateY(180deg);
+}
+.flip-front,
+.flip-back {
+  backface-visibility: hidden;
+  position: absolute;
+  inset: 0;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}</div>
+          <button class="demo-copy-btn" onclick="copyDemo(this)">Copy</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end demo-grid -->
+</section>
+
+
+</div>
+</div><div class="page" id="page-5" data-page="5">
+  <div class="page-inner"><section id="backend">
+  <div class="section-header reveal">
+    <div class="section-number">04</div>
+    <div class="section-title-block">
+      <div class="section-label">Data & Logic</div>
+      <div class="section-title">BACKEND WITHOUT THE PAIN</div>
+      <p class="section-desc">You don't need to understand databases deeply. You need to know what to connect and how to ask Claude to wire it up properly.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">The backend is everything your users never see — but always depend on.</div>
+    <div class="explainer-body">
+      Your <strong>frontend</strong> is the interface — what people click and see. Your <strong>backend</strong> is the engine: the database that stores data, the logic that processes it, the auth system that knows who's logged in. If the frontend is the restaurant floor, the backend is the kitchen.
+      <br><br>
+      You don't need to cook — you need to <em>pick the right kitchen setup and tell Claude exactly how to wire it.</em> This section gives you the opinionated stack that works, why each piece exists, and the prompts that set it up correctly.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">🍽️</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> When you use an app to order food, you see a clean screen. Behind it: a database of restaurants, a payments processor, a user account system, and servers running logic. You built all of that when you prompt Claude to set up Supabase + auth + API routes. One afternoon. No CS degree required.</div>
+    </div>
+  </div>
+    <div class="what-is-row">
+    <div class="what-is-item">
+      <div class="what-is-term">Database</div>
+      <div class="what-is-def">Where all your data lives. Users, orders, messages — everything stored so it persists between sessions. Think: a very powerful spreadsheet in the cloud.</div>
+    </div>
+    <div class="what-is-item">
+      <div class="what-is-term">Auth</div>
+      <div class="what-is-def">Short for Authentication — the system that handles sign-up, login, and "is this user allowed to see this?" So you never build a login screen from scratch.</div>
+    </div>
+    <div class="what-is-item">
+      <div class="what-is-term">API</div>
+      <div class="what-is-def">The bridge between your frontend (what users see) and your backend (where data lives). When you click "save," an API call carries your data to the database.</div>
+    </div>
+    <div class="what-is-item">
+      <div class="what-is-term">Environment Variables</div>
+      <div class="what-is-def">Secret values (API keys, passwords) stored outside your code so they never get accidentally shared. Saved in a file called <strong>.env</strong> that Git ignores.</div>
+    </div>
+  </div>
+<table class="stack-table reveal">
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Recommended Tool</th>
+        <th>Why</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Database</td>
+        <td>Supabase <span class="rec-badge">★ TOP PICK</span></td>
+        <td>PostgreSQL + auth + storage + real-time, all in one. Free tier is generous.</td>
+        <td>Claude knows it extremely well — prompts will be clean</td>
+      </tr>
+      <tr>
+        <td>Auth</td>
+        <td>Supabase Auth or Clerk</td>
+        <td>Supabase is free + integrated. Clerk is $25/mo but has better UI components.</td>
+        <td>Don't roll your own auth. Ever.</td>
+      </tr>
+      <tr>
+        <td>API / Logic</td>
+        <td>Next.js API Routes or tRPC</td>
+        <td>Keep it in your frontend framework if possible. Less surface area.</td>
+        <td>Edge functions for performance-critical paths</td>
+      </tr>
+      <tr>
+        <td>Payments</td>
+        <td>Stripe</td>
+        <td>Only option worth considering. Docs are excellent, Claude knows it cold.</td>
+        <td>Use Stripe Checkout for MVP — 1 hour not 1 week</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td>Resend + React Email</td>
+        <td>Simplest modern email setup. Works perfectly with Claude Code.</td>
+        <td>Avoid SendGrid complexity until you need it</td>
+      </tr>
+      <tr>
+        <td>File Storage</td>
+        <td>Supabase Storage</td>
+        <td>Already in your stack if you use Supabase. S3-compatible.</td>
+        <td>Cloudflare R2 if cost matters at scale</td>
+      </tr>
+      <tr>
+        <td>Background Jobs</td>
+        <td>Inngest or Trigger.dev</td>
+        <td>Managed queues without running your own infra. AI-friendly DX.</td>
+        <td>Only when you need async tasks</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip reveal">
+    <div class="callout-label">🗄️ Supabase Prompt Template</div>
+    <p><strong>"Set up a Supabase table called 'subscribers' with columns: id (uuid, primary key), email (text, unique), created_at (timestamp), source (text). Enable Row Level Security. Users can only INSERT, not read others' data."</strong> This level of specificity gets it right first time.</p>
+  </div>
+
+  <div class="card-grid reveal">
+    <div class="card">
+      <span class="card-icon">🔐</span>
+      <div class="card-title">Row Level Security (RLS)</div>
+      <div class="card-text"><span class="card-what">What it is</span>Imagine a shared spreadsheet where each user can only see their own rows — even though all the data lives in one place. That's Row Level Security. Without it, a logged-in user could theoretically request anyone else's data.<br><br>Supabase makes this easy. Always prompt: <strong>"Enable RLS on every table. Users can only read and write their own rows where user_id = auth.uid()."</strong> One prompt. Done.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🌱</span>
+      <div class="card-title">Seed data — fake data for testing</div>
+      <div class="card-text"><span class="card-what">What it is</span>When you're building, your database is empty. That makes it impossible to see how your UI actually looks with real content. Seed data is a set of fake-but-realistic records you pre-load so you can design and test against something real.<br><br>Ask Claude to <strong>"create a seed.sql file with 10 sample records"</strong>. Develop against real-feeling data. Catch edge cases before real users do.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📡</span>
+      <div class="card-title">Real-time updates — live data without refreshing</div>
+      <div class="card-text">Real-time subscriptions are powerful but can create complexity. <strong>Only use it where live updates are core to the UX</strong> — chat, collaborative editing, live dashboards.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧪</span>
+      <div class="card-title">Test locally before touching your live database</div>
+      <div class="card-text">Run <span class="mono" style="font-size:12px;">supabase start</span> locally. Never build against production while prototyping. Claude can scaffold the local setup in one prompt.</div>
+    </div>
+  </div>
+
+  <div class="checklist reveal" style="margin-top:32px;">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up Supabase project before writing any backend code<span>Get your project URL and anon key first</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Enable Row Level Security (RLS) on every table<span class="check-what">What: makes your database enforce that users can only read/write their own data — not everyone else's</span><span>Non-negotiable. Ask Claude to add policies for every operation.</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Define your database schema before building UI<span class="check-what">What: schema = the structure of your database (what tables exist, what columns they have) — design this first or you'll rebuild your UI when data changes</span><span>Changing schema after UI is wired = pain</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Use environment variables for all credentials<span class="check-what">What: environment variables are settings stored outside your code (in .env) — the right place for any key, password, or URL that should stay private</span><span>Never hardcode API keys in code — ever</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Create seed data for local testing<span class="check-what">What: a script that pre-fills your database with fake-but-realistic records so you can see how your UI actually looks</span><span>"Generate 20 realistic test rows for this table"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up Stripe Checkout (not Elements) for payment MVP<span>1 hour not 1 week. Upgrade later if needed.</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Configure Resend for transactional email<span>Welcome email, password reset, key notifications</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-6" data-page="6">
+  <div class="page-inner"><section id="hosting">
+  <div class="section-header reveal">
+    <div class="section-number">05</div>
+    <div class="section-title-block">
+      <div class="section-label">Deployment</div>
+      <div class="section-title">GETTING IT LIVE</div>
+      <p class="section-desc">Deploy early and often. A product in production teaches you more in a week than months of local dev.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">Hosting puts your app on the internet so anyone with a link can use it.</div>
+    <div class="explainer-body">
+      Right now your app only exists on your laptop. <strong>Hosting</strong> means uploading it to a server that's always on, so your users can reach it 24/7 from anywhere. Think of it like going from a document saved on your desktop to one published on the web.
+      <br><br>
+      The good news: modern hosting is nearly free to start, takes about <em>10 minutes to set up,</em> and Claude can write every config file you need. You connect your GitHub, it deploys automatically every time you push code.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">📡</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> Your laptop is a kitchen you cook in privately. Hosting is opening a restaurant — now the food is available to anyone who walks in. Vercel is the building lease: fast, well-located, handles all the infrastructure so you focus on the menu.</div>
+    </div>
+  </div>
+    <div class="what-is-row">
+    <div class="what-is-item">
+      <div class="what-is-term">Deploy</div>
+      <div class="what-is-def">The act of uploading your code to a server so it becomes live on the internet. You'll hear "I just deployed" meaning "I just pushed an update live."</div>
+    </div>
+    <div class="what-is-item">
+      <div class="what-is-term">Preview Deployment</div>
+      <div class="what-is-def">A temporary live URL created for every branch — so you can share a link to your new feature before merging it to the live app. Like a staging copy.</div>
+    </div>
+    <div class="what-is-item">
+      <div class="what-is-term">Build</div>
+      <div class="what-is-def">The process that compiles your code into an optimised version ready for the internet. Happens automatically on Vercel every time you push to GitHub.</div>
+    </div>
+    <div class="what-is-item">
+      <div class="what-is-term">Domain / Custom Domain</div>
+      <div class="what-is-def">Your web address (yourapp.com). By default Vercel gives you a yourapp.vercel.app URL — connecting your own domain takes about 5 minutes.</div>
+    </div>
+  </div>
+<table class="stack-table reveal">
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Best For</th>
+        <th>Pricing</th>
+        <th>Claude Prompting Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Vercel <span class="rec-badge">★ DEFAULT</span></td>
+        <td>Next.js, React, full-stack web apps</td>
+        <td>Free hobby tier. $20/mo Pro.</td>
+        <td>Claude can generate vercel.json config, env setup, and deployment scripts</td>
+      </tr>
+      <tr>
+        <td>Netlify</td>
+        <td>Static sites, Gatsby, Vue</td>
+        <td>Generous free tier</td>
+        <td>Good for static builds. Less friction for non-Next apps.</td>
+      </tr>
+      <tr>
+        <td>Railway</td>
+        <td>Full backend apps, databases, APIs</td>
+        <td>$5/mo usage-based</td>
+        <td>Simpler than AWS, better than Heroku. Great for Python/Node backends.</td>
+      </tr>
+      <tr>
+        <td>Fly.io</td>
+        <td>Global edge deployment, containers</td>
+        <td>Free allowance + usage</td>
+        <td>More control than Vercel. Use when you need custom infra.</td>
+      </tr>
+      <tr>
+        <td>Render</td>
+        <td>Web services, cron jobs, Redis</td>
+        <td>Free tier (spins down), $7/mo to stay warm</td>
+        <td>Good Heroku alternative. Easy to set up, Claude knows it well.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="two-col reveal">
+    <div>
+      <div class="col-label green">✓ Do This</div>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:12px;">
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent);">Deploy to Vercel on day one, before anything works. Get the URL. Share it. Make it real.</li>
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent);">Set up Preview Deployments — every PR gets its own URL. Test before merging.</li>
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent);">Connect your custom domain from day one. psychological commitment + credibility.</li>
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent);">Use Vercel's environment variables UI, not .env in production.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="col-label red">✗ Don't Do This</div>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:12px;">
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent2);">Wait until the product is "done" to deploy. You'll never deploy.</li>
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent2);">Run multiple environments without a staging → prod workflow.</li>
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent2);">Push secrets to GitHub. Even "private" repos. Ever.</li>
+        <li style="font-size:14px; color:var(--muted); padding:12px; background:var(--surface2); border-left:2px solid var(--accent2);">Ignore the build logs when something breaks. That's where the answer is.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="checklist reveal" style="margin-top:32px;">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Connect repo to Vercel on day one<span>Even before the first feature is done</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up all environment variables in Vercel dashboard<span>NEXT_PUBLIC_ for client-side, bare for server-side</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Enable Preview Deployments for all branches<span>Never merge blind — test on preview URL first</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Connect custom domain (even $12 from Namecheap counts)<span>yourstartup.com > vercel.app for credibility</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up error monitoring (Sentry free tier is fine)<span>"Add Sentry to my Next.js app" — Claude can scaffold this</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-7" data-page="7">
+  <div class="page-inner"><section id="github">
+  <div class="section-header reveal">
+    <div class="section-number">06</div>
+    <div class="section-title-block">
+      <div class="section-label">Version Control</div>
+      <div class="section-title">GITHUB FOR NON-ENGINEERS</div>
+      <p class="section-desc">GitHub is your save system. Commit often, branch for features, never push directly to main. Claude can do most of this for you.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">GitHub is Google Docs version history for your code — but you control when to save.</div>
+    <div class="explainer-body">
+      When you write code, things break. <strong>Git</strong> is a system that tracks every change so you can always go back. <strong>GitHub</strong> is the cloud storage that holds those saves online and lets you share them with teammates or deploy to hosting platforms.
+      <br><br>
+      You'll use three concepts constantly: <em>commits</em> (a named save), <em>branches</em> (a parallel version where you try things without breaking the live app), and <em>push</em> (syncing your local saves to GitHub). Claude can do all three for you — you just need to understand why.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">📖</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> Imagine writing a book. Git is your version history — "Draft 1," "After editor notes," "Final final ACTUAL final." A branch is opening a copy to try a new ending without touching the original. A commit is hitting Save with a note to your future self about what changed.</div>
+    </div>
+  </div>
+  <div class="callout info reveal">
+    <div class="callout-label">💾 The Mental Model</div>
+    <p>Think of GitHub like Google Docs version history, except <strong>you control when to save and what to name each save.</strong> Commits = saves. Branches = separate drafts. Main = the one that's live.</p>
+  </div>
+
+  <div class="card-grid reveal">
+    <div class="card">
+      <span class="card-icon">🌿</span>
+      <div class="card-title">Branch for every feature</div>
+      <div class="card-text"><span class="card-what">What a branch is</span>A parallel copy of your code where you can build and experiment without affecting the live version. Think: opening a duplicate Google Doc to try edits without changing the original. <strong>Main</strong> is the version that's live on the internet. Everything else is a branch.<br><br>Never build directly on main. Ask Claude: <strong>"Create a new branch for this feature and commit when done."</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📝</span>
+      <div class="card-title">Write real commit messages</div>
+      <div class="card-text"><span class="card-what">What a commit is</span>A named snapshot of your code at a moment in time. Like hitting "Save As" with a description of what changed. If something breaks two weeks from now, you'll scroll through commits to find where it went wrong — so the message matters.<br><br>Not "update" or "fix". Say <strong>"add email capture form with Supabase integration"</strong>. Future you will thank present you. Claude will write them if you ask.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔍</span>
+      <div class="card-title">.gitignore — tell Git what NOT to save</div>
+      <div class="card-text">Prompt: <strong>"Create a .gitignore for Next.js with Supabase. Exclude .env, node_modules, .next, and any local config."</strong> Do this before the first push. Non-negotiable.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">👁️</span>
+      <div class="card-title">Private repo, always</div>
+      <div class="card-text">Unless you're deliberately open-sourcing, keep it private. Your .env history, your business logic, your competitive advantage — none of it should be public by default.</div>
+    </div>
+  </div>
+
+  <div class="code-block reveal">
+<span class="comment"># Daily Claude Code workflow</span>
+
+<span class="highlight">Morning:</span>
+"What's the current state of the project? What should we build next?"
+
+<span class="highlight">Feature start:</span>
+"Create a new branch called feature/[name] and confirm we're on it."
+
+<span class="highlight">Mid-session:</span>
+"Commit what we have with a descriptive message."
+
+<span class="highlight">Feature done:</span>
+"Create a pull request for this feature branch into main. 
+Write a summary of what changed."
+
+<span class="highlight">End of day:</span>
+"Commit everything. Push the branch. 
+What's outstanding that we didn't finish?"
+  </div>
+
+  <div class="checklist reveal">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Create private GitHub repo before writing any code<span>Initialize with README, .gitignore for your stack</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up .gitignore before first commit<span class="check-what">What: a file that tells Git which files to never upload — keeps your secrets (.env) and junk (node_modules) out of GitHub</span><span>Exclude .env, node_modules, build artifacts</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Never push directly to main (your live branch)<span class="check-what">What: "main" is the version of your code that's live on the internet — always use a branch for new work</span><span>Always branch → build → PR → merge</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Commit at logical checkpoints, not just end of day<span>"Feature works" is a better commit moment than "day over"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Protect the main branch in GitHub settings<span class="check-what">What: a setting that prevents accidental direct pushes to your live code — takes 30 seconds to enable</span><span>Require a PR to merge. Prevents accidental pushes.</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Add co-founder / collaborator with right permissions<span>Admin for co-founders, Write for contractors</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-8" data-page="8">
+  <div class="page-inner"><section id="security">
+  <div class="section-header reveal">
+    <div class="section-number">07</div>
+    <div class="section-title-block">
+      <div class="section-label">Protection</div>
+      <div class="section-title">SECURITY BASICS (NON-OPTIONAL)</div>
+      <p class="section-desc">You don't need to be a security engineer. You need to not make the obvious mistakes. These 10 things cover 90% of what matters at your stage.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">Security is locking the doors before you invite the public in.</div>
+    <div class="explainer-body">
+      You don't need to understand cryptography. You need to know <strong>where the obvious unlocked doors are</strong> and close them before you launch. The most common startup breaches aren't sophisticated hacks — they're API keys accidentally posted to GitHub, or databases with no access rules.
+      <br><br>
+      The checklist in this section covers the 10 things that <em>matter at your stage.</em> Each one has a Claude prompt you can run right now. Think of it as a pre-flight check, not a PhD program.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">🔐</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> Opening a coffee shop? You lock the register, don't leave the safe open, and check IDs for alcohol. You don't hire a CIA security team. Same principle here — basic hygiene eliminates 90% of the risk. The other 10% you'll deal with when you're much bigger.</div>
+    </div>
+  </div>
+  <div class="callout reveal">
+    <div class="callout-label">⚠️ Reality Check</div>
+    <p><strong>You will get attacked the moment you're indexed by Google.</strong> Bots don't care that you're an early startup. The basics below take 2-4 hours to implement. The breach takes 2 minutes to exploit.</p>
+  </div>
+
+  <div class="card-grid reveal">
+    <div class="card">
+      <span class="card-icon">🔑</span>
+      <div class="card-title">Never put secret keys in your code</div>
+      <div class="card-text"><span class="card-what">What a secret key is</span>Every service you connect to (Stripe, Supabase, email) gives you a password-like key to identify your app. If that key ends up in your code and you push to GitHub, anyone can find it and use your account. This happens constantly.<br><br>Instead, put all keys in a file called <span class="mono">.env.local</span> — Git ignores this file automatically. Claude prompt: <strong>"Audit this file for any hardcoded credentials."</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🛡️</span>
+      <div class="card-title">Row Level Security — each user sees only their data</div>
+      <div class="card-text"><span class="card-what">Why it matters</span>Without RLS, any logged-in user could request every row in your database — every other user's data, orders, messages, everything. With RLS on, the database enforces "you can only see rows that belong to you" at the database level itself.<br><br>Supabase's RLS means users can only see their own data. Without it, anyone with your anon key can read your entire database. <strong>Always on. No exceptions.</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📧</span>
+      <div class="card-title">Verify email before granting access</div>
+      <div class="card-text">Enable email confirmation in Supabase Auth. One setting. Prevents fake accounts, spam, and some abuse vectors. Ask Claude to add a <strong>"check email confirmed before showing app"</strong> gate.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🚫</span>
+      <div class="card-title">Rate limiting — stop bots from hammering your app</div>
+      <div class="card-text">Prompt: <strong>"Add rate limiting to this API route — max 10 requests per minute per IP."</strong> Use Upstash Redis for this (free tier). Prevents abuse and cost explosion.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🌐</span>
+      <div class="card-title">HTTPS everywhere (free on Vercel)</div>
+      <div class="card-text">Vercel handles SSL automatically. Just make sure you're not loading any HTTP resources (images, scripts) on an HTTPS page. Ask Claude to <strong>"audit for mixed content issues."</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧹</span>
+      <div class="card-title">Sanitize inputs — never trust what users type</div>
+      <div class="card-text">Anything a user types that ends up in your database or gets rendered on screen needs sanitization. Prompt: <strong>"Add input sanitization and validation to every form in this file."</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔐</span>
+      <div class="card-title">Use Supabase Auth, not DIY</div>
+      <div class="card-text">Building your own password system is one of the most dangerous things a non-security-engineer can do. Supabase Auth is battle-tested. <strong>Just use it.</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">👁️</span>
+      <div class="card-title">Audit your public API surface</div>
+      <div class="card-text">Prompt: <strong>"List every API route in this project. For each one, tell me if it requires auth and what data it exposes."</strong> Close anything that shouldn't be open.</div>
+    </div>
+  </div>
+
+  <div class="checklist reveal" style="margin-top:32px;">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">All API keys and passwords in .env — never in code<span class="check-what">What: .env is a local file Git ignores automatically — the safe place for any password-like values</span><span>Ask Claude to audit for hardcoded credentials before every deploy</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">RLS (Row Level Security) enabled on every table<span class="check-what">What: database-level rule so each user can only access their own data, even if your app has a bug</span><span>With explicit policies for SELECT, INSERT, UPDATE, DELETE</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Email verification enabled in Supabase Auth<span>Before any protected route is accessible</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Rate limiting on public endpoints<span class="check-what">What: a cap on how many requests one person can make per minute — stops bots and brute-force attacks</span><span>Upstash Redis + ratelimit library — one prompt to set up</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Input validation on all forms<span class="check-what">What: checking that user-submitted text can't be used to run malicious commands against your database</span><span>Claude can add Zod schema validation to every form</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Run Claude security audit before launch<span>"Review this codebase for common security vulnerabilities"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up CORS properly for your API<span>Only allow your own domain, not *</span></div>
+    </div>
+  </div>
+</section>
+
+</div>
+</div><div class="page" id="page-9" data-page="9">
+  <div class="page-inner"><section id="beyond">
+  <div class="section-header reveal">
+    <div class="section-number">08</div>
+    <div class="section-title-block">
+      <div class="section-label">Level Up</div>
+      <div class="section-title">WHAT ELSE YOU SHOULD KNOW</div>
+      <p class="section-desc">The stuff no one tells you until you've already learned it the hard way. Consider this your cheat code.</p>
+    </div>
+  </div>
+
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">You shipped. Now make it smarter, faster, and more data-driven.</div>
+    <div class="explainer-body">
+      You have a working product. This section is about the habits that separate <strong>founders who iterate fast</strong> from those who disappear into building mode. Analytics tells you what's actually being used. Feature flags let you test without breaking things. Automation saves you from repetitive work.
+      <br><br>
+      None of this requires a full engineering team. With Claude, <em>each of these is an afternoon of prompting,</em> not weeks of work. Stack these habits early and you'll compound speed over every sprint.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">🚦</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> You opened the restaurant. Now you install a POS system to track which dishes sell, put one new special on the menu without changing everything, and automate the weekly inventory order. Same energy — small systems that multiply your output without multiplying your hours.</div>
+    </div>
+  </div>
+  <div class="card-grid reveal">
+    <div class="card">
+      <span class="card-icon">📊</span>
+      <div class="card-title">Analytics — see what users actually do</div>
+      <div class="card-text"><span class="card-what">What it is</span>A tool that records every click, page view, and action in your app — so you can see which features get used and which get ignored. Without it, you're building blind, guessing what matters.<br><br>Add PostHog or Plausible before your first user. <strong>Free tiers are generous.</strong> Claude can wire up event tracking in one prompt: "Add PostHog tracking to every button click and page view."</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧪</span>
+      <div class="card-title">Feature flags — ship to some users, not all</div>
+      <div class="card-text"><span class="card-what">What it is</span>A switch that lets you turn a feature on for specific users without deploying new code. You can test a new onboarding flow with 10% of users, see if it works, then roll it out to everyone — or quietly turn it off if it doesn't.<br><br>Use PostHog's feature flags or LaunchDarkly to ship features to specific users first. <strong>"Enable this for user X only"</strong> — test without touching code.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🤖</span>
+      <div class="card-title">AI features are easy now</div>
+      <div class="card-text">Want to add AI to your product? <strong>"Add an AI chat feature using the Anthropic SDK that answers questions about [topic]."</strong> Shipping an AI feature is now a 2-hour task.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔔</span>
+      <div class="card-title">Webhooks — let other services notify you automatically</div>
+      <div class="card-text"><span class="card-what">What it is</span>Instead of your app constantly asking "did anything change?" (polling), a webhook means Stripe or Supabase will tap you on the shoulder the moment something happens — payment succeeded, user signed up, database row changed.<br><br>It's faster, cheaper, and more reliable. Stripe webhooks tell you when payments succeed/fail. Supabase webhooks fire on DB changes. <strong>Don't poll — listen.</strong> Claude can scaffold a webhook handler in minutes.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📝</span>
+      <div class="card-title">Document as you build</div>
+      <div class="card-text">End every session: <strong>"Summarize what we built today and update the README."</strong> Future-you and your co-founder will be grateful. It also forces clarity.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔄</span>
+      <div class="card-title">Automate with Claude, not code</div>
+      <div class="card-text">Repetitive tasks? <strong>"Write a script that does X every time Y happens."</strong> Claude can automate your own workflow. You should never do the same tedious thing twice.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🧩</span>
+      <div class="card-title">Component libraries are your friend</div>
+      <div class="card-text">Don't build every UI element from scratch. Use shadcn/ui (free, beautiful, customizable). Prompt: <strong>"Use shadcn components for this UI. Install whatever's needed."</strong></div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🚀</span>
+      <div class="card-title">Ship, then optimize</div>
+      <div class="card-text"><strong>Premature optimization is the enemy of shipping.</strong> Get it working, get it in front of users, then — and only then — make it fast. Claude can help you profile performance when you're ready.</div>
+    </div>
+  </div>
+
+  <div class="callout tip reveal" style="margin-top:32px;">
+    <div class="callout-label">🧠 The Meta Skill</div>
+    <p><strong>The best vibe coders aren't the best at prompting. They're the best at knowing what to build.</strong> Claude can execute anything you describe clearly. Your job is to be ruthlessly clear about what matters, why it matters, and what done looks like. That's it. Everything else is just practice.</p>
+  </div>
+
+  <div class="checklist reveal" style="margin-top:32px;">
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Add PostHog analytics before first user<span>Event tracking + session recordings = actual insight</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up error monitoring (Sentry free tier)<span>Know when things break before your users do</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Use shadcn/ui for component library<span>Free, accessible, easily customized — Claude knows it well</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Implement feature flags for new features<span>Ship to 1 user before shipping to everyone</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Update README after every build session<span>"Summarize what we built and add it to the README"</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Set up Stripe webhooks for payment events<span>succeeded, failed, refunded — handle them all</span></div>
+    </div>
+    <div class="check-item" onclick="toggle(this)">
+      <div class="checkbox"></div>
+      <div class="check-label">Schedule 30 min/week to run Claude over your codebase<span>"What's the worst code in here? What should we refactor?"</span></div>
+    </div>
+  </div>
+</section>
+  </div><!-- end page-inner -->
+</div>
+<div class="page" id="page-10" data-page="10">
+  <div class="page-inner">
+<section id="launch">
+
+  <div class="section-header">
+    <div class="section-number">09</div>
+    <div class="section-title-block">
+      <div class="section-label">Go Live</div>
+      <div class="section-title">HOW TO LAUNCH</div>
+      <p class="section-desc">Most founders overbuild and underlaunce. This is the playbook for going from "it works on my laptop" to real people using your product — without waiting until it's perfect.</p>
+    </div>
+  </div>
+
+  <div class="explainer">
+    <div class="explainer-eyebrow">Plain English</div>
+    <div class="explainer-headline">Launching is not a moment. It's a habit you start earlier than you think.</div>
+    <div class="explainer-body">
+      There is no "ready." There's <strong>working enough to learn from.</strong> The founders who move fastest aren't the ones who build the most — they're the ones who put something in front of real people earliest and let feedback drive the next sprint.
+      <br><br>
+      This section covers the full launch sequence: from your first private beta link to your first public post to your first paying customer. <em>Each step is a one-day job with Claude.</em> You don't need a launch team. You need a checklist and a deadline.
+    </div>
+    <div class="explainer-analogy">
+      <div class="explainer-analogy-icon">🎯</div>
+      <div class="explainer-analogy-text"><strong>The analogy:</strong> A restaurant doesn't wait until every dish is perfect to open. They do a soft launch — friends and family, limited menu, real feedback. Then they iterate. Your product launch works exactly the same way. Ship the limited menu first.</div>
+    </div>
+  </div>
+
+  <!-- LAUNCH PHASES -->
+  <div class="launch-timeline">
+
+    <div class="launch-phase">
+      <div class="launch-phase-marker">
+        <div class="launch-phase-dot" style="background:var(--accent)"></div>
+        <div class="launch-phase-line"></div>
+      </div>
+      <div class="launch-phase-body">
+        <div class="launch-phase-tag" style="color:var(--accent); border-color:rgba(232,255,71,0.3)">Phase 1 · Day 1</div>
+        <div class="launch-phase-title">Soft Launch — Send the Link</div>
+        <div class="launch-phase-desc">Your app is live on Vercel. Now send it to 10 people you trust: co-founders, advisors, close friends in your target market. No announcement. No Product Hunt. Just a Slack message or a text that says "I built something — can you try it and tell me what breaks?"</div>
+        <div class="launch-prompts">
+          <div class="launch-prompt-label">Claude prompts for this phase</div>
+          <div class="launch-prompt">"Write a 3-sentence cold DM asking a [target user] to test my app. It's a [one-line description]. Keep it casual, not salesy."</div>
+          <div class="launch-prompt">"Create a simple feedback form using Typeform embed — I want to capture: what confused them, what they'd pay for, what's missing."</div>
+          <div class="launch-prompt">"Add a feedback button to every page that opens a modal with 2 questions: what worked, what didn't."</div>
+        </div>
+        <div class="launch-checklist">
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>App is live at a real URL (yourapp.vercel.app is fine for now)</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>10 specific people identified to test it — not just "anyone"</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Feedback mechanism in place before you send the first link</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>PostHog or analytics installed so you can see what they actually click</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="launch-phase">
+      <div class="launch-phase-marker">
+        <div class="launch-phase-dot" style="background:#a8ff78"></div>
+        <div class="launch-phase-line"></div>
+      </div>
+      <div class="launch-phase-body">
+        <div class="launch-phase-tag" style="color:#a8ff78; border-color:rgba(168,255,120,0.3)">Phase 2 · Week 1</div>
+        <div class="launch-phase-title">Waitlist — Build the List Before the Product</div>
+        <div class="launch-phase-desc">While you're iterating from beta feedback, start capturing demand. A waitlist page with an email capture takes Claude about 20 minutes to build and deploy. This is your proof of interest and your launch list.</div>
+        <div class="what-is-row" style="margin:16px 0 0">
+          <div class="what-is-item">
+            <div class="what-is-term">Waitlist</div>
+            <div class="what-is-def">A simple page where interested people leave their email before your product is fully available. Proves demand exists. Gives you an audience to launch to.</div>
+          </div>
+          <div class="what-is-item">
+            <div class="what-is-term">Conversion Rate</div>
+            <div class="what-is-def">The % of visitors who sign up. If 100 people visit and 30 sign up, that's 30% — a great indicator that your messaging is landing.</div>
+          </div>
+          <div class="what-is-item">
+            <div class="what-is-term">Above the Fold</div>
+            <div class="what-is-def">What visitors see before they scroll. Your headline, subheading, and CTA button must all fit here. This is the most valuable real estate on your page.</div>
+          </div>
+        </div>
+        <div class="launch-prompts" style="margin-top:16px">
+          <div class="launch-prompt-label">Claude prompts for this phase</div>
+          <div class="launch-prompt">"Build a waitlist landing page. Hero headline: [your headline]. Subhead: [value prop in one sentence]. Email capture that saves to Supabase. Minimal, dark design, mobile-first."</div>
+          <div class="launch-prompt">"Write 3 variations of my hero headline for A/B testing. Product: [description]. Target user: [who]. Main benefit: [what it solves]."</div>
+          <div class="launch-prompt">"Add a confirmation email using Resend that fires when someone joins the waitlist. Keep it warm and short — 3 sentences max."</div>
+        </div>
+        <div class="launch-checklist">
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Waitlist page live with email capture connected to your database</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Automated confirmation email goes out on sign-up</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Custom domain connected (yourproduct.com, not vercel.app)</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>OG image set so it looks good when shared on social</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="launch-phase">
+      <div class="launch-phase-marker">
+        <div class="launch-phase-dot" style="background:var(--accent3)"></div>
+        <div class="launch-phase-line"></div>
+      </div>
+      <div class="launch-phase-body">
+        <div class="launch-phase-tag" style="color:var(--accent3); border-color:rgba(71,212,255,0.3)">Phase 3 · Week 2</div>
+        <div class="launch-phase-title">Public Announcement — Your First Post</div>
+        <div class="launch-phase-desc">Post where your users are. LinkedIn for B2B, X/Twitter for developer tools, Reddit for niche communities. One post, honest and specific, outperforms a polished press release every time. "I built X in 3 weeks using Claude Code. Here's how." That's a post.</div>
+        <div class="launch-prompts">
+          <div class="launch-prompt-label">Claude prompts for this phase</div>
+          <div class="launch-prompt">"Write a LinkedIn post announcing [product]. I'm a [your background]. I built it because [personal reason]. It does [one-sentence description]. Link in comments. Tone: authentic founder, not marketing. No buzzwords."</div>
+          <div class="launch-prompt">"Write a 'Show HN' post for Hacker News. Product: [name]. One-liner: [description]. Why I built it: [reason]. What it does: [core feature]. What I'm looking for: feedback. Keep it factual and humble."</div>
+          <div class="launch-prompt">"Find the 3 best subreddits for [your target user] and write a genuine community post that adds value first, mentions the product second."</div>
+        </div>
+        <div class="launch-callout">
+          <div class="launch-callout-icon">⚠️</div>
+          <div class="launch-callout-text"><strong>Don't spam.</strong> Post once, engage with every comment, incorporate feedback visibly. "Great point — I just shipped that fix" turns a post into a launch event.</div>
+        </div>
+        <div class="launch-checklist">
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>One genuine post on your primary channel (LinkedIn / X / Reddit)</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Product Hunt draft ready (launch Tuesday–Thursday for best traction)</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Responded to every comment within 24 hours</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Emailed your waitlist the moment the post goes live</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="launch-phase">
+      <div class="launch-phase-marker">
+        <div class="launch-phase-dot" style="background:#c084fc"></div>
+        <div class="launch-phase-line"></div>
+      </div>
+      <div class="launch-phase-body">
+        <div class="launch-phase-tag" style="color:#c084fc; border-color:rgba(192,132,252,0.3)">Phase 4 · Week 3–4</div>
+        <div class="launch-phase-title">First Revenue — Charge Before You're Ready</div>
+        <div class="launch-phase-desc">The hardest psychological shift: asking for money. Do it early, even if the product isn't perfect. "Pay what you think it's worth" or a founding-member discount creates urgency and tells you instantly whether you have a real business.</div>
+        <div class="what-is-row" style="margin:16px 0 0">
+          <div class="what-is-item">
+            <div class="what-is-term">Stripe Checkout</div>
+            <div class="what-is-def">A pre-built payment page from Stripe. You don't build a payments UI — you redirect users to Stripe's page, they pay, Stripe sends you the money. Takes 30 minutes to set up with Claude.</div>
+          </div>
+          <div class="what-is-item">
+            <div class="what-is-term">Founding Member Pricing</div>
+            <div class="what-is-def">A discounted price offered only to your first N customers. Creates urgency, rewards early adopters, and gets you paid before you've built everything. "Lock in $19/mo forever" works.</div>
+          </div>
+          <div class="what-is-item">
+            <div class="what-is-term">Webhook (Payments)</div>
+            <div class="what-is-def">When someone pays, Stripe pings your app automatically to unlock their account. This is how "paid → gets access" happens without manual intervention.</div>
+          </div>
+        </div>
+        <div class="launch-prompts" style="margin-top:16px">
+          <div class="launch-prompt-label">Claude prompts for this phase</div>
+          <div class="launch-prompt">"Set up Stripe Checkout for a $[price]/month subscription. On successful payment, update the user's status in Supabase to 'paid' and redirect them to /dashboard."</div>
+          <div class="launch-prompt">"Add a Stripe webhook that listens for payment_intent.succeeded and payment_failed events. On success: grant access. On failure: send a retry email."</div>
+          <div class="launch-prompt">"Create a /pricing page with 3 tiers: Free (limited), Pro ($X/mo), Founding Member ($Y/mo — first 50 only). Highlight the founding tier with an accent color and a countdown of spots remaining."</div>
+        </div>
+        <div class="launch-checklist">
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Stripe account set up and connected</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>At least one paid tier live and purchaseable</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Stripe webhook wired to unlock access on payment</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Test the full payment flow yourself with a real card</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Emailed your beta users with the founding member offer</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="launch-phase">
+      <div class="launch-phase-marker">
+        <div class="launch-phase-dot" style="background:var(--accent2)"></div>
+      </div>
+      <div class="launch-phase-body">
+        <div class="launch-phase-tag" style="color:var(--accent2); border-color:rgba(255,107,53,0.3)">Phase 5 · Ongoing</div>
+        <div class="launch-phase-title">The Loop — Ship, Tell, Listen, Repeat</div>
+        <div class="launch-phase-desc">Launching is not a destination. The best products are the ones with founders who stay in the loop: ship a visible improvement every week, tell users what changed, listen to what they say next. Claude makes the "ship" part fast. The listening and telling is still yours.</div>
+        <div class="launch-prompts">
+          <div class="launch-prompt-label">Weekly habit prompts</div>
+          <div class="launch-prompt">"Write a 5-bullet product update email for my users. This week I shipped: [list]. Next week I'm building: [list]. Tone: founder talking directly to power users, casual and honest."</div>
+          <div class="launch-prompt">"Look at this analytics data: [paste PostHog data]. What features are being ignored? What does the drop-off funnel tell me about where users get stuck?"</div>
+          <div class="launch-prompt">"A user left this feedback: [paste]. What's the underlying problem they're describing? What's the minimal change that would fix it?"</div>
+        </div>
+        <div class="launch-callout" style="border-color:var(--accent); background:rgba(232,255,71,0.04)">
+          <div class="launch-callout-icon">✦</div>
+          <div class="launch-callout-text" style="color:var(--text)"><strong style="color:var(--accent)">The unfair advantage.</strong> You can ship in hours what used to take a team weeks. Use that to be the most responsive founder your users have ever encountered. That's your moat — not features, not funding. Speed of iteration.</div>
+        </div>
+        <div class="launch-checklist">
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Weekly product update email scheduled</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Review analytics every Monday — what did users actually use?</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>One user interview per week (video call, 20 min, 5 questions)</span></div>
+          <div class="launch-check-item" onclick="this.classList.toggle('done')"><div class="launch-check-box"></div><span>Changelog or "what's new" page updated after every sprint</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end launch-timeline -->
+
+</section>
+  </div><!-- end page-inner -->
+</div><!-- end page-10 -->
+</div><!-- end pagesContainer -->
+</div><!-- end pagesViewport -->
+<button class="page-arrow page-arrow-up" id="arrowUp" onclick="triggerPageChange(currentPage-1)">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+</button>
+<button class="page-arrow page-arrow-down" id="arrowDown" onclick="triggerPageChange(currentPage+1)">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+</button>
+
+<div id="glossaryView" style="display:none;position:fixed;left:var(--sidebar-w);right:0;top:var(--nav-h);bottom:0;overflow-y:auto;background:var(--bg);">
+  <div id="glossary-tab" class="tab-content glossary-page">
+  <div class="glossary-hero">
+    <div class="section-label" style="margin-bottom:12px;">Plain English Definitions</div>
+    <h2>THE <span>GLOSSARY</span></h2>
+    <p>Every term you'll encounter while vibe coding — defined without jargon. Bookmark this. You'll come back.</p>
+  </div>
+
+  <div class="glossary-search-wrap">
+    <input class="glossary-search" id="glossarySearch" placeholder="Filter terms... e.g. 'API', 'auth', 'webhook'" oninput="filterGlossary()" />
+    <span class="glossary-count" id="glossaryCount">70 terms</span>
+  </div>
+
+  <div class="glossary-alpha-nav" id="alphaNav"></div>
+
+  <div class="glossary-body" id="glossaryBody"></div>
+  <div class="glossary-no-results" id="glossaryNoResults">No terms match your search. Try a different keyword.</div>
+</div><!-- end glossary-tab -->
+</div>
+
+<div class="progress-widget">
+  <div class="progress-ring-wrap">
+    <svg width="44" height="44" viewBox="0 0 44 44">
+      <circle class="progress-ring-track" cx="22" cy="22" r="18"/>
+      <circle class="progress-ring-fill" id="progressRing" cx="22" cy="22" r="18"/>
+    </svg>
+    <div class="progress-pct" id="progressPct">0%</div>
+  </div>
+  <div class="progress-label">Done</div>
+</div>
+
+<div class="key-hint-bar" id="keyHintBar">
+  <div class="key-hint"><kbd>↑</kbd><kbd>↓</kbd> Pages</div>
+  <div class="key-hint"><kbd>/</kbd> Search</div>
+  <div class="key-hint"><kbd>G</kbd> Glossary</div>
+</div>
+<script>
+const PAGE_LABELS = ["Setup", "Start Here", "Prompting", "Features", "UI / UX", "Backend", "Hosting", "GitHub", "Security", "Beyond", "Launch"];
+const TOTAL_PAGES = 11;
+let currentPage = 0;
+let isGlossaryOpen = false;
+
+function goTo(n) {
+  if (n < 0 || n >= TOTAL_PAGES) return;
+  if (isGlossaryOpen) showGuide();
+  currentPage = n;
+  const h = document.getElementById('pagesViewport').offsetHeight;
+  document.getElementById('pagesContainer').style.transform = `translateY(${-n * h}px)`;
+  updateUI();
+}
+
+function updateUI() {
+  document.querySelectorAll('.sidebar-dot[id^="dot-"]').forEach((d,i) => d.classList.toggle('active', i === currentPage));
+  document.getElementById('pageNum').textContent = currentPage + 1;
+  document.getElementById('pageLabel').textContent = PAGE_LABELS[currentPage] || '';
+  const pct = (currentPage / (TOTAL_PAGES - 1)) * 100;
+  document.getElementById('sidebarProgress').style.width = pct + '%';
+  document.getElementById('tab-guide').classList.toggle('active', !isGlossaryOpen);
+  document.getElementById('tab-glossary').classList.remove('active');
+  // update global arrows
+  const up = document.getElementById('arrowUp');
+  const dn = document.getElementById('arrowDown');
+  if (up) { up.style.opacity = currentPage === 0 ? '0' : '1'; up.style.pointerEvents = currentPage === 0 ? 'none' : 'auto'; }
+  if (dn) { dn.style.opacity = currentPage === TOTAL_PAGES-1 ? '0' : '1'; dn.style.pointerEvents = currentPage === TOTAL_PAGES-1 ? 'none' : 'auto'; }
+}
+
+let scrollCooldown = false;
+
+document.getElementById('pagesViewport').addEventListener('wheel', (e) => {
+  if (scrollCooldown) { e.preventDefault(); return; }
+  const page = document.getElementById('page-' + currentPage);
+  if (!page) return;
+  const atBottom = page.scrollTop + page.clientHeight >= page.scrollHeight - 6;
+  const atTop = page.scrollTop === 0;
+  if (e.deltaY > 40 && atBottom) { e.preventDefault(); triggerPageChange(currentPage + 1); }
+  else if (e.deltaY < -40 && atTop) { e.preventDefault(); triggerPageChange(currentPage - 1); }
+}, { passive: false });
+
+function triggerPageChange(n) {
+  if (n < 0 || n >= TOTAL_PAGES) return;
+  scrollCooldown = true;
+  goTo(n);
+  setTimeout(() => scrollCooldown = false, 700);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('searchOverlay').classList.contains('open')) return;
+  if (['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); triggerPageChange(currentPage + 1); }
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); triggerPageChange(currentPage - 1); }
+  else if (e.key === '/') { e.preventDefault(); openSearch(); }
+  else if (e.key === 'g' || e.key === 'G') { showGlossary(); }
+});
+
+let touchY = 0;
+document.getElementById('pagesViewport').addEventListener('touchstart', e => touchY = e.touches[0].clientY, {passive:true});
+document.getElementById('pagesViewport').addEventListener('touchend', e => {
+  const diff = touchY - e.changedTouches[0].clientY;
+  if (Math.abs(diff) > 60) triggerPageChange(diff > 0 ? currentPage + 1 : currentPage - 1);
+}, {passive:true});
+
+window.addEventListener('resize', () => {
+  const h = document.getElementById('pagesViewport').offsetHeight;
+  const c = document.getElementById('pagesContainer');
+  c.style.transition = 'none';
+  c.style.transform = `translateY(${-currentPage * h}px)`;
+  setTimeout(() => c.style.transition = '', 50);
+});
+
+function showGlossary() {
+  isGlossaryOpen = true;
+  document.getElementById('glossaryView').style.display = 'block';
+  document.getElementById('pagesViewport').style.visibility = 'hidden';
+  document.getElementById('tab-glossary').classList.add('active');
+  document.getElementById('tab-guide').classList.remove('active');
+  document.getElementById('pageLabel').textContent = 'Glossary';
+  document.getElementById('pageNum').textContent = '–';
+  document.querySelectorAll('.sidebar-dot[id^="dot-"]').forEach(d => d.classList.remove('active'));
+}
+
+function showGuide() {
+  isGlossaryOpen = false;
+  document.getElementById('glossaryView').style.display = 'none';
+  document.getElementById('pagesViewport').style.visibility = 'visible';
+  updateUI();
+}
+
+function switchOS(os) {
+  document.querySelectorAll('.os-track').forEach(t => t.classList.remove('active'));
+  const t = document.getElementById('track-' + os);
+  if (t) t.classList.add('active');
+  document.getElementById('os-mac').classList.toggle('active', os === 'mac');
+  document.getElementById('os-win').classList.toggle('active', os === 'win');
+}
+
+function toggle(el) {
+  el.classList.toggle('done');
+  const items = document.querySelectorAll('.check-item');
+  const done = document.querySelectorAll('.check-item.done');
+  const pct = items.length ? Math.round((done.length / items.length) * 100) : 0;
+  document.getElementById('progressPct').textContent = pct + '%';
+  const circ = 113.1;
+  document.getElementById('progressRing').style.strokeDashoffset = circ - (circ * pct / 100);
+}
+
+function switchDemoTab(btn, type, demo) {
+  const panel = btn.closest('.demo-code-panel');
+  panel.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  panel.querySelectorAll('.demo-tab-content').forEach(c => c.classList.toggle('hidden', !(c.dataset.demo === demo && c.dataset.type === type)));
+}
+
+function copyDemo(btn) {
+  const visible = btn.closest('.demo-code-panel').querySelector('.demo-tab-content:not(.hidden)');
+  navigator.clipboard.writeText(visible.textContent.trim()).then(() => {
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function replayScroll() {
+  const items = document.querySelectorAll('.sd-item');
+  items.forEach(el => el.classList.remove('in'));
+  setTimeout(() => items.forEach((el,i) => setTimeout(() => el.classList.add('in'), i*100)), 50);
+}
+
+let skelShowing = true;
+function toggleSkeleton() {
+  skelShowing = !skelShowing;
+  document.getElementById('skelCard').classList.toggle('hidden', !skelShowing);
+  document.getElementById('realCard').classList.toggle('hidden', skelShowing);
+}
+
+function replayStagger() {
+  document.querySelectorAll('#staggerWrap .stagger-item').forEach(el => { el.style.animation='none'; el.offsetHeight; el.style.animation=''; });
+}
+
+const canVibrate = 'vibrate' in navigator;
+function hapticLight(b)   { if(canVibrate) navigator.vibrate(10);           flashBtn(b); setHM(canVibrate?'📳 10ms pulse':'(Desktop: no haptics)'); }
+function hapticMedium(b)  { if(canVibrate) navigator.vibrate(30);           flashBtn(b); setHM(canVibrate?'📳 30ms pulse':'(Desktop: no haptics)'); }
+function hapticSuccess(b) { if(canVibrate) navigator.vibrate([50,30,50]);   flashBtn(b); setHM(canVibrate?'📳 Double-pulse':'(Desktop: no haptics)'); }
+function hapticError(b)   { if(canVibrate) navigator.vibrate([30,20,30,20,30]); flashBtn(b); setHM(canVibrate?'📳 Triple-burst':'(Desktop: no haptics)'); }
+function flashBtn(b) { b.classList.add('fired'); setTimeout(()=>b.classList.remove('fired'),600); }
+function setHM(m) { const e=document.getElementById('hapticMsg'); if(e) e.textContent=m; }
+
+function triggerSuccess() {
+  const i=document.getElementById('stateInput');
+  i.classList.remove('error'); i.classList.add('success');
+  document.getElementById('stateError').classList.remove('show');
+  document.getElementById('stateSuccess').classList.add('show');
+  if(canVibrate) navigator.vibrate([50,30,50]);
+}
+function triggerError() {
+  const i=document.getElementById('stateInput');
+  i.classList.remove('success','error'); void i.offsetWidth;
+  i.classList.add('error');
+  document.getElementById('stateError').classList.add('show');
+  document.getElementById('stateSuccess').classList.remove('show');
+  if(canVibrate) navigator.vibrate([30,20,30,20,30]);
+}
+function resetState() {
+  const i=document.getElementById('stateInput');
+  i.classList.remove('error','success'); i.value='';
+  document.getElementById('stateError').classList.remove('show');
+  document.getElementById('stateSuccess').classList.remove('show');
+}
+
+  const SEARCH_INDEX = [
+    { icon:'💻', title:'Setup — Open the Terminal', desc:'Mac: Terminal.app · Windows: Windows Terminal or PowerShell', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'🍺', title:'Setup — Install Homebrew (Mac)', desc:'Mac package manager · installs developer tools', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'📦', title:'Setup — Install Node.js', desc:'brew install node (Mac) · nodejs.org LTS (Windows)', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'🤖', title:'Setup — Install Claude Code', desc:'npm install -g @anthropic-ai/claude-code', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'🖥️', title:'Setup — Install VS Code', desc:'Free code editor · code.visualstudio.com', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'🐙', title:'Setup — Git and GitHub', desc:'brew install git (Mac) · git-scm.com (Windows)', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'🚀', title:'Setup — Create First Project', desc:'npx create-next-app@latest · then run claude', tag:'Setup', href:'#setup', tab:'guide' },
+    { icon:'🗺️', title:'Start Here — The Build Sequence', desc:'Visual flowchart of the full build process', tag:'Overview', href:'#start-here', tab:'guide' },
+    { icon:'🗂️', title:'CLAUDE.md — Your Project Brief', desc:'Create a persistent brief for every Claude session', tag:'Prompting', href:'#prompting', tab:'guide' },
+    { icon:'🎯', title:'One Task Per Prompt', desc:'Don\'t chain multiple features in one message', tag:'Prompting', href:'#prompting', tab:'guide' },
+    { icon:'🔁', title:'/compact — Reset Context', desc:'Use every 20-30 messages to keep Claude focused', tag:'Prompting', href:'#prompting', tab:'guide' },
+    { icon:'⛔', title:'Constraints in Prompts', desc:'Tell Claude what NOT to do to prevent scope creep', tag:'Prompting', href:'#prompting', tab:'guide' },
+    { icon:'📸', title:'Screenshot Reference UI', desc:'Drag a screenshot instead of describing it in words', tag:'Prompting', href:'#prompting', tab:'guide' },
+    { icon:'🧠', title:'Describe Outcomes, Not Steps', desc:'Say what you want to happen, let Claude figure out how', tag:'Prompting', href:'#prompting', tab:'guide' },
+    { icon:'🗺️', title:'Feature Scope Doc', desc:'Write user stories before prompting anything', tag:'Features', href:'#features', tab:'guide' },
+    { icon:'🚦', title:'MVP / V2 / Someday Tagging', desc:'Tag every feature. Build MVP only until you have users.', tag:'Features', href:'#features', tab:'guide' },
+    { icon:'🎪', title:'Fake It First — Static Mockup', desc:'Hardcoded data before wiring the backend', tag:'Features', href:'#features', tab:'guide' },
+    { icon:'✨', title:'Prompt for Animations Explicitly', desc:'Claude won\'t add motion unless you ask for it', tag:'UI/UX', href:'#uiux', tab:'guide' },
+    { icon:'📱', title:'Haptic Feedback on Mobile', desc:'navigator.vibrate() for web, expo-haptics for React Native', tag:'UI/UX', href:'#uiux', tab:'guide' },
+    { icon:'🔍', title:'Zoom & Scale on Hover', desc:'scale(1.02) on hover = perceived polish', tag:'UI/UX', href:'#uiux', tab:'guide' },
+    { icon:'🌊', title:'Scroll-Triggered Reveals', desc:'IntersectionObserver + CSS transitions', tag:'UI/UX', href:'#uiux', tab:'guide' },
+    { icon:'🎠', title:'Loading, Success, Error States', desc:'Every async action needs all three states', tag:'UI/UX', href:'#uiux', tab:'guide' },
+    { icon:'📐', title:'Mobile-First Prompting', desc:'Declare mobile-first at the start of every UI prompt', tag:'UI/UX', href:'#uiux', tab:'guide' },
+    { icon:'🗄️', title:'Supabase — Database & Auth', desc:'PostgreSQL + auth + storage + real-time in one tool', tag:'Backend', href:'#backend', tab:'guide' },
+    { icon:'🔐', title:'Row Level Security (RLS)', desc:'Non-negotiable on every Supabase table', tag:'Backend', href:'#backend', tab:'guide' },
+    { icon:'💳', title:'Stripe Checkout for Payments', desc:'Use Checkout not Elements for your MVP', tag:'Backend', href:'#backend', tab:'guide' },
+    { icon:'📧', title:'Resend + React Email', desc:'Simplest modern transactional email setup', tag:'Backend', href:'#backend', tab:'guide' },
+    { icon:'🌱', title:'Seed Data for Development', desc:'Ask Claude to generate realistic test rows', tag:'Backend', href:'#backend', tab:'guide' },
+    { icon:'▲', title:'Vercel — Hosting Default', desc:'Deploy Next.js, connect domain, enable preview URLs', tag:'Hosting', href:'#hosting', tab:'guide' },
+    { icon:'🔄', title:'Preview Deployments', desc:'Every PR gets its own URL — test before merging', tag:'Hosting', href:'#hosting', tab:'guide' },
+    { icon:'🌐', title:'Custom Domain from Day One', desc:'$12. Non-negotiable for credibility.', tag:'Hosting', href:'#hosting', tab:'guide' },
+    { icon:'🚂', title:'Railway — Backend Apps', desc:'Full backend services, databases, APIs', tag:'Hosting', href:'#hosting', tab:'guide' },
+    { icon:'🌿', title:'Branch for Every Feature', desc:'Never build directly on main', tag:'GitHub', href:'#github', tab:'guide' },
+    { icon:'🔍', title:'.gitignore Before First Commit', desc:'Exclude .env, node_modules, build artifacts', tag:'GitHub', href:'#github', tab:'guide' },
+    { icon:'👁️', title:'Private Repo Always', desc:'Keep your business logic out of public repos', tag:'GitHub', href:'#github', tab:'guide' },
+    { icon:'🔑', title:'Never Hardcode Secrets', desc:'API keys go in .env.local, never in code', tag:'Security', href:'#security', tab:'guide' },
+    { icon:'🛡️', title:'RLS Security Audit', desc:'"Audit this file for hardcoded credentials"', tag:'Security', href:'#security', tab:'guide' },
+    { icon:'🚫', title:'Rate Limiting with Upstash', desc:'Max requests per minute per IP — one prompt', tag:'Security', href:'#security', tab:'guide' },
+    { icon:'🧹', title:'Input Sanitization', desc:'Sanitize everything a user types that enters your DB', tag:'Security', href:'#security', tab:'guide' },
+    { icon:'📊', title:'PostHog Analytics', desc:'Add before your first user. Free tier.', tag:'Beyond', href:'#beyond', tab:'guide' },
+    { icon:'🧩', title:'shadcn/ui Components', desc:'Free, accessible, Claude knows it well', tag:'Beyond', href:'#beyond', tab:'guide' },
+    { icon:'🤖', title:'Adding AI to Your Product', desc:'"Add an AI feature using the Anthropic SDK"', tag:'Beyond', href:'#beyond', tab:'guide' },
+    { icon:'🔔', title:'Webhooks — Don\'t Poll, Listen', desc:'Stripe webhooks, Supabase DB webhooks', tag:'Beyond', href:'#beyond', tab:'guide' },
+    { icon:'🧪', title:'Feature Flags with PostHog', desc:'Ship to 1 user before shipping to everyone', tag:'Beyond', href:'#beyond', tab:'guide' },
+  ];
+
+
+let searchFocusIdx = -1;
+
+function openSearch() { document.getElementById('searchOverlay').classList.add('open'); document.getElementById('searchInput').focus(); renderSearchResults(''); }
+function closeSearch() { document.getElementById('searchOverlay').classList.remove('open'); document.getElementById('searchInput').value=''; searchFocusIdx=-1; }
+function closeSearchIfOutside(e) { if(e.target===document.getElementById('searchOverlay')) closeSearch(); }
+
+function hl(text, q) {
+  if(!q) return text;
+  return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'), '<mark>$1</mark>');
+}
+
+const PAGE_IDS = ['setup','start-here','prompting','features','uiux','backend','hosting','github','security','beyond','launch'];
+
+function handleSearchClick(tab, href) {
+  closeSearch();
+  if(tab==='glossary') { showGlossary(); return; }
+  showGuide();
+  const anchor = href.replace('#','');
+  const idx = PAGE_IDS.indexOf(anchor);
+  if(idx !== -1) { goTo(idx); return; }
+  PAGE_IDS.forEach((id,i) => {
+    const pg = document.getElementById('page-'+i);
+    if(pg && pg.querySelector('#'+anchor)) goTo(i);
+  });
+}
+
+function renderSearchResults(query) {
+  const container = document.getElementById('searchResults');
+  const q = query.toLowerCase().trim();
+  if(!q) {
+    const grouped = {};
+    SEARCH_INDEX.forEach(item => { if(!grouped[item.tag]) grouped[item.tag]=[]; grouped[item.tag].push(item); });
+    let html='';
+    Object.entries(grouped).slice(0,4).forEach(([tag,items]) => {
+      html += `<div class="search-group-label">${tag}</div>`;
+      items.slice(0,2).forEach(item => {
+        html += `<a class="search-result-item" href="${item.href}" onclick="handleSearchClick('${item.tab}','${item.href}')" style="text-decoration:none;color:inherit">
+          <div class="search-result-icon">${item.icon}</div>
+          <div class="search-result-body"><div class="search-result-title">${item.title}</div><div class="search-result-desc">${item.desc}</div></div>
+          <span class="search-result-tag">${item.tag}</span></a>`;
+      });
+    });
+    container.innerHTML = html || '<div class="search-empty">Start typing</div>';
+    return;
+  }
+  const results = SEARCH_INDEX.filter(item => item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q) || item.tag.toLowerCase().includes(q));
+  if(!results.length) { container.innerHTML = `<div class="search-empty">No results for "${query}"</div>`; return; }
+  container.innerHTML = results.map(item => `<a class="search-result-item" href="${item.href}" onclick="handleSearchClick('${item.tab}','${item.href}')" style="text-decoration:none;color:inherit">
+    <div class="search-result-icon">${item.icon}</div>
+    <div class="search-result-body"><div class="search-result-title">${hl(item.title,query)}</div><div class="search-result-desc">${hl(item.desc,query)}</div></div>
+    <span class="search-result-tag">${item.tag}</span></a>`).join('');
+}
+
+document.getElementById('searchInput').addEventListener('input', e => { renderSearchResults(e.target.value); searchFocusIdx=-1; });
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  const items=document.querySelectorAll('.search-result-item');
+  if(e.key==='ArrowDown') searchFocusIdx=Math.min(searchFocusIdx+1,items.length-1);
+  else if(e.key==='ArrowUp') searchFocusIdx=Math.max(searchFocusIdx-1,-1);
+  else if(e.key==='Enter' && searchFocusIdx>=0) { items[searchFocusIdx].click(); return; }
+  else if(e.key==='Escape') { closeSearch(); return; }
+  items.forEach((item,i) => item.classList.toggle('focused', i===searchFocusIdx));
+  if(searchFocusIdx>=0) items[searchFocusIdx].scrollIntoView({block:'nearest'});
+});
+
+  const GLOSSARY = [
+    // A
+    { term: 'API (Application Programming Interface)', cat: 'Core Concept', def: 'A way for two pieces of software to talk to each other. When your app asks Stripe "did this payment go through?", it\'s using Stripe\'s API. Think of it as a <strong>menu at a restaurant</strong> — you pick what you want, the kitchen (server) handles it, and you get the result back.' },
+    { term: 'API Key', cat: 'Auth & Security', def: 'A secret password that proves your app is allowed to use someone else\'s service (Stripe, Supabase, Anthropic, etc.). <strong>Never share it. Never put it in your code.</strong> It goes in your <code>.env</code> file only.' },
+    { term: 'Async / Asynchronous', cat: 'Core Concept', def: 'When your app does something that takes time (fetching data, uploading a file) without freezing everything else. The opposite of waiting in line — more like placing a coffee order and sitting down while it\'s made. In code: <code>async/await</code>.' },
+    { term: 'Auth / Authentication', cat: 'Auth & Security', def: 'Confirming who a user is — usually via email + password, Google login, or magic link. <strong>Authentication = "Who are you?"</strong> (Login). Not to be confused with Authorization = "What are you allowed to do?"' },
+    { term: 'Authorization', cat: 'Auth & Security', def: 'What a user is allowed to do or see after they\'ve logged in. Example: regular users see their own data; admins see everyone\'s. In Supabase, this is managed with <strong>Row Level Security (RLS)</strong> policies.' },
+    // B
+    { term: 'Backend', cat: 'Architecture', def: 'The part of your app that users never see — the server, database, and business logic. It handles storing data, authentication, payments, emails. <strong>Think of it as the kitchen</strong> — the frontend is the dining room.' },
+    { term: 'Branch (Git)', cat: 'GitHub & Git', def: 'A separate copy of your codebase where you can make changes without affecting the main version. Like a <strong>draft document</strong> that only becomes the real thing when you merge it. Always branch for new features.' },
+    { term: 'Build', cat: 'Deployment', def: 'The process of compiling your code into a production-ready format. When you push to Vercel, it "builds" your app before deploying it. If the build fails, your code won\'t go live — check the logs.' },
+    { term: 'Bundle / Bundler', cat: 'Frontend', def: 'A tool that packages all your JavaScript files into something a browser can load efficiently. Next.js uses Webpack/Turbopack under the hood. You rarely touch this directly as a vibe coder.' },
+    // C
+    { term: 'CDN (Content Delivery Network)', cat: 'Deployment', def: 'A network of servers around the world that serve your static files (images, CSS, JS) from whichever location is closest to the user. <strong>Makes your site faster globally.</strong> Vercel includes this automatically.' },
+    { term: 'CLI (Command Line Interface)', cat: 'Tools', def: 'The terminal/command prompt where you type text commands. Claude Code lives here. Commands like <code>npm run dev</code>, <code>git push</code>, and <code>supabase start</code> are CLI commands.' },
+    { term: 'Client-Side', cat: 'Architecture', def: 'Code that runs in the user\'s browser, not on a server. React components are client-side. Useful for interactivity, but <strong>never put secret API keys here</strong> — users can see it all.' },
+    { term: 'CLAUDE.md', cat: 'Claude Code', def: 'A special file in your project root that Claude Code reads at the start of every session. Put your stack, conventions, and rules here. It\'s your <strong>persistent brief</strong> — so you don\'t have to re-explain context every time.' },
+    { term: 'Commit (Git)', cat: 'GitHub & Git', def: 'Saving a snapshot of your code with a descriptive message. Think of it as <strong>pressing save with a label</strong>: "Add email capture form". Make commits at logical checkpoints, not just end of day.' },
+    { term: 'Component', cat: 'Frontend', def: 'A reusable piece of UI — a button, a card, a nav bar. In React, components are functions that return HTML. The goal is to build components once and reuse them everywhere instead of copying and pasting.' },
+    { term: 'CORS (Cross-Origin Resource Sharing)', cat: 'Auth & Security', def: 'A browser rule that controls which websites can call your API. If you see a CORS error, your server is rejecting the request. Fix: <strong>allow only your own domain</strong>, not <code>*</code> (which allows everyone).' },
+    { term: 'Cron Job', cat: 'Backend', def: 'A task that runs automatically on a schedule. Example: "Send weekly digest email every Monday at 8am." Use Inngest or Vercel Cron for this — no server management required.' },
+    { term: 'CSS Variables', cat: 'Frontend', def: 'Reusable values in your CSS, defined once and used everywhere. <code>--accent: #e8ff47</code> defined at the top, then used as <code>color: var(--accent)</code> throughout. Change one line to retheme the whole site.' },
+    // D
+    { term: 'Database', cat: 'Backend', def: 'Where your app\'s data lives permanently — users, posts, orders, etc. Supabase gives you a PostgreSQL database. <strong>Your database is your most valuable asset.</strong> Back it up. Secure it with RLS. Design the schema before you build UI.' },
+    { term: 'Deploy / Deployment', cat: 'Deployment', def: 'Pushing your code from your local machine (or GitHub) to a live server so real users can access it. Vercel makes this happen automatically every time you push to GitHub. <strong>Ship early, deploy often.</strong>' },
+    { term: 'Dev Dependencies', cat: 'Tools', def: 'npm packages only needed during development (linters, testing tools), not in production. Listed in <code>devDependencies</code> in package.json. They don\'t add to your final bundle size.' },
+    { term: 'DNS (Domain Name System)', cat: 'Deployment', def: 'The internet\'s phone book. When you type yourstartup.com, DNS translates it to an IP address. You configure DNS records (like CNAME or A records) to point your domain at Vercel.' },
+    { term: 'DX (Developer Experience)', cat: 'Culture', def: 'How pleasant it is to build with a tool. Supabase, Vercel, and shadcn all prioritize DX — they\'re fast to set up, well-documented, and Claude knows them well. <strong>Good DX = faster shipping.</strong>' },
+    // E
+    { term: 'Edge Functions', cat: 'Backend', def: 'Serverless functions that run at CDN locations closest to your users — so they\'re extremely fast. Vercel and Supabase both offer these. Use for performance-critical logic like auth middleware.' },
+    { term: 'Environment Variable', cat: 'Auth & Security', def: 'A secret or config value stored outside your code — in a <code>.env</code> file locally, or in your hosting dashboard for production. <code>SUPABASE_URL</code>, <code>STRIPE_SECRET_KEY</code>, etc. <strong>Never commit these to GitHub.</strong>' },
+    // F
+    { term: 'Feature Flag', cat: 'Product', def: 'A switch that lets you turn features on/off for specific users without deploying new code. Ship to 1 user first, then 10%, then everyone. PostHog has these for free. <strong>How you test without breaking prod.</strong>' },
+    { term: 'Fetch / Fetching', cat: 'Frontend', def: 'Making a request from your frontend to an API or backend to get or send data. <code>fetch()</code> is the built-in browser function. "Fetching" data = loading it from somewhere else.' },
+    { term: 'Foreign Key', cat: 'Database', def: 'A column in one database table that references the ID of a row in another table. Links related data. Example: a <code>posts</code> table has a <code>user_id</code> foreign key pointing to the <code>users</code> table.' },
+    { term: 'Frontend', cat: 'Architecture', def: 'Everything a user sees and interacts with — buttons, forms, animations, layouts. Built with HTML, CSS, and JavaScript (usually React + Tailwind in the modern stack). <strong>The dining room, not the kitchen.</strong>' },
+    { term: 'Full-Stack', cat: 'Architecture', def: 'Building both the frontend and backend of an app. With Next.js + Supabase, you\'re essentially full-stack even as a solo vibe coder. Claude handles both sides.' },
+    // G
+    { term: 'Git', cat: 'GitHub & Git', def: 'The version control system that tracks every change to your code. Not the same as GitHub (which hosts your Git repos in the cloud). Commands like <code>git commit</code>, <code>git push</code>, <code>git branch</code> are Git.' },
+    { term: 'GitHub', cat: 'GitHub & Git', def: 'The cloud platform that stores your Git repositories. Also where Vercel pulls your code from to deploy. Keep your repos <strong>private by default</strong> until you intentionally open-source.' },
+    { term: 'gitignore', cat: 'GitHub & Git', def: 'A file that tells Git which files NOT to track or push to GitHub. Always include <code>.env</code>, <code>node_modules</code>, and build folders. Ask Claude to generate this for your stack before your first commit.' },
+    // H
+    { term: 'Haptics', cat: 'Mobile & UI', def: 'Vibration feedback on mobile devices that makes interactions feel physical. <code>navigator.vibrate(10)</code> on the web; <code>expo-haptics</code> in React Native. <strong>One of the most overlooked polish features.</strong> Adds perceived quality instantly.' },
+    { term: 'Hook (React)', cat: 'Frontend', def: 'A special React function that lets you use state and lifecycle features. <code>useState</code> stores values, <code>useEffect</code> runs side effects, <code>useContext</code> shares data. You\'ll use these constantly.' },
+    { term: 'HTTP / HTTPS', cat: 'Core Concept', def: 'The protocol browsers use to request web pages. HTTPS = encrypted (secure). All modern sites must use HTTPS. <strong>Vercel handles SSL/HTTPS automatically</strong> for your domain.' },
+    // I
+    { term: 'IntersectionObserver', cat: 'Frontend', def: 'A browser API that detects when an element enters the viewport (scrolls into view). Used for scroll-triggered animations — elements fade in as you scroll down. Zero performance impact vs old scroll listeners.' },
+    // J
+    { term: 'JSON (JavaScript Object Notation)', cat: 'Core Concept', def: 'The universal data format APIs use to send and receive data. Looks like: <code>{"name": "Alex", "email": "alex@example.com"}</code>. Basically a structured dictionary. APIs speak JSON.' },
+    { term: 'JWT (JSON Web Token)', cat: 'Auth & Security', def: 'An encrypted token that proves a user is logged in. Supabase sends your app a JWT after login; your app includes it in requests to prove identity. You rarely manage this directly — Supabase handles it.' },
+    // L
+    { term: 'Library / Package', cat: 'Tools', def: 'Pre-written code someone else built that you install and use in your project. <code>npm install shadcn</code> adds their component library. Libraries save you from building everything from scratch.' },
+    { term: 'Local Development', cat: 'Tools', def: 'Running your app on your own computer before deploying it live. Usually at <code>localhost:3000</code>. Use <code>supabase start</code> to run a local DB too. <strong>Never develop against your production database.</strong>' },
+    // M
+    { term: 'Merge (Git)', cat: 'GitHub & Git', def: 'Combining a feature branch back into main (or another branch). Usually done via a Pull Request on GitHub. The moment your feature becomes part of the real codebase.' },
+    { term: 'Middleware', cat: 'Backend', def: 'Code that runs between a user\'s request and your response — like a bouncer. Checks if users are logged in, redirects them, adds headers. In Next.js, this lives in <code>middleware.ts</code>.' },
+    { term: 'Migration (Database)', cat: 'Database', def: 'A file that describes a change to your database schema — adding a column, creating a table, etc. Supabase generates these automatically. <strong>Never edit your DB schema manually in production</strong> — use migrations.' },
+    { term: 'MVP (Minimum Viable Product)', cat: 'Product', def: 'The smallest version of your product that solves the core problem for real users. Not a prototype — something you actually ship. <strong>The goal is learning, not perfection.</strong> Everything else is V2.' },
+    // N
+    { term: 'Next.js', cat: 'Frontend', def: 'The most popular React framework. Handles routing, server-side rendering, API routes, and more. Built by Vercel, so deployment is seamless. <strong>The default choice for most vibe coding projects.</strong>' },
+    { term: 'node_modules', cat: 'Tools', def: 'The folder where npm installs all your project\'s dependencies. Often enormous (hundreds of MB). <strong>Never commit this to GitHub</strong> — it\'s in your .gitignore. Running <code>npm install</code> recreates it.' },
+    { term: 'npm', cat: 'Tools', def: 'Node Package Manager — the tool you use to install JavaScript libraries. <code>npm install package-name</code> adds a library. <code>npm run dev</code> starts your local server. Ships with Node.js.' },
+    // O
+    { term: 'ORM (Object-Relational Mapper)', cat: 'Database', def: 'A library that lets you write database queries in JavaScript instead of SQL. Prisma and Drizzle are popular ORMs. Supabase has its own JS client that acts similarly. Makes DB work readable.' },
+    // P
+    { term: 'Package.json', cat: 'Tools', def: 'The manifest file for your Node.js project. Lists all your dependencies, scripts, and project metadata. When you run <code>npm install</code>, it reads this file to know what to install.' },
+    { term: 'PostgreSQL', cat: 'Database', def: 'The world\'s most advanced open-source relational database. Supabase runs on Postgres. Stores data in rows and tables, like Excel but infinitely more powerful. Supports JSON, full-text search, and much more.' },
+    { term: 'PR / Pull Request', cat: 'GitHub & Git', def: 'A request to merge a feature branch into main. GitHub\'s way of reviewing code before it goes live. Even if you\'re solo, PRs give you a Vercel preview URL to test on before merging.' },
+    { term: 'Production', cat: 'Deployment', def: 'The live environment real users interact with. The opposite of local or staging. <strong>Be careful in production</strong> — mistakes are real. Use feature flags and preview deploys to test before going live.' },
+    // R
+    { term: 'Rate Limiting', cat: 'Auth & Security', def: 'Restricting how many requests a user or IP can make in a time window. Prevents abuse, spam, and cost explosions. Implement with Upstash Redis. <strong>Add to all public API endpoints</strong> before launch.' },
+    { term: 'React', cat: 'Frontend', def: 'The dominant JavaScript library for building UIs. Everything is a component. Next.js is built on React. Claude knows React extremely well — most UI prompts will use it.' },
+    { term: 'RLS (Row Level Security)', cat: 'Auth & Security', def: 'Supabase\'s system for controlling which database rows a user can access. <strong>Without RLS, anyone with your anon key can read your entire database.</strong> Always on. Claude can write the policies for you.' },
+    { term: 'Repo / Repository', cat: 'GitHub & Git', def: 'The folder (and its history) that contains your entire project\'s code, managed by Git. Stored locally and on GitHub. <strong>Keep it private by default.</strong>' },
+    { term: 'REST API', cat: 'Core Concept', def: 'The most common API style. Uses HTTP methods (GET, POST, PUT, DELETE) and URLs to create/read/update/delete data. Supabase exposes your DB as a REST API automatically.' },
+    // S
+    { term: 'Schema', cat: 'Database', def: 'The structure of your database — what tables exist, what columns they have, what data types they store. <strong>Design your schema before building UI.</strong> Changing it later is painful.' },
+    { term: 'Serverless Functions', cat: 'Backend', def: 'Backend code that runs on demand without you managing a server. Vercel and Supabase both offer these. You write the function, they handle the infrastructure. Pay only for what you use.' },
+    { term: 'shadcn/ui', cat: 'Frontend', def: 'A free, beautiful, accessible component library for React. Not installed as a package — you copy components into your codebase. Fully customizable. <strong>Claude knows it extremely well.</strong> Use it as your default UI kit.' },
+    { term: 'Skeleton Loader', cat: 'Frontend', def: 'A placeholder UI shown while content is loading — a gray pulsing shape that matches the content\'s layout. <strong>Much better UX than a spinner.</strong> Ask Claude: "Add skeleton loaders while data fetches."' },
+    { term: 'SQL', cat: 'Database', def: 'The language used to query and manipulate relational databases. <code>SELECT * FROM users WHERE email = \'alex@example.com\'</code>. Supabase uses SQL under the hood. Claude can write all your SQL.' },
+    { term: 'SSR (Server-Side Rendering)', cat: 'Frontend', def: 'Generating HTML on the server before sending it to the browser. Faster first load, better SEO. Next.js does this by default for certain pages. You don\'t need to configure much — just understand the concept.' },
+    { term: 'State (React)', cat: 'Frontend', def: 'Data that can change over time and causes the UI to re-render. Managed with <code>useState</code> (local) or Zustand/Context (global). <strong>Think of state as the app\'s memory.</strong>' },
+    { term: 'Supabase', cat: 'Backend', def: 'An open-source Firebase alternative — gives you a PostgreSQL database, authentication, file storage, real-time subscriptions, and edge functions, all in one dashboard. <strong>The default backend for vibe coding.</strong>' },
+    // T
+    { term: 'Tailwind CSS', cat: 'Frontend', def: 'A utility-first CSS framework. Instead of writing custom CSS, you add classes like <code>bg-black text-white p-4 rounded-lg</code> directly to your HTML. Claude codes in Tailwind naturally.' },
+    { term: 'tRPC', cat: 'Backend', def: 'A TypeScript-first API layer that gives you end-to-end type safety without generating code. Great alternative to REST for full-stack TypeScript apps. Claude can set this up if needed.' },
+    { term: 'TypeScript', cat: 'Frontend', def: 'JavaScript with type checking — catches errors before runtime. More strict, safer. Most modern projects use it. If you\'re just starting, you don\'t need it — use plain JavaScript first.' },
+    // U
+    { term: 'UUID', cat: 'Database', def: 'A universally unique identifier — a long random string used as a primary key (ID) for database rows. Example: <code>550e8400-e29b-41d4-a716-446655440000</code>. Supabase uses these by default.' },
+    // V
+    { term: 'Vercel', cat: 'Deployment', def: 'The cloud platform built for Next.js (though it supports many frameworks). Deploy by connecting your GitHub repo. Every push auto-deploys. Every PR gets a preview URL. <strong>Free hobby tier is generous.</strong>' },
+    // W
+    { term: 'Webhook', cat: 'Backend', def: 'An HTTP request that a service sends to YOUR app when something happens. Stripe sends a webhook when a payment succeeds. <strong>Don\'t poll for updates — use webhooks to listen.</strong> Claude can scaffold a webhook handler in minutes.' },
+    { term: 'WebSocket', cat: 'Backend', def: 'A persistent connection between client and server that allows real-time, two-way communication. Used in chat apps, live dashboards, collaborative tools. Supabase real-time uses this under the hood.' },
+    // Z
+    { term: 'Zod', cat: 'Frontend', def: 'A TypeScript-first schema validation library. Define the shape you expect data to be, and Zod validates it. Use for form validation, API response parsing, environment variable checking. <strong>"Add Zod validation to every form"</strong> is a great prompt.' },
+  ];
+
+
+function buildGlossary() {
+  const grouped={};
+  GLOSSARY.forEach(item => { const l=item.term[0].toUpperCase(); if(!grouped[l]) grouped[l]=[]; grouped[l].push(item); });
+  const nav=document.getElementById('alphaNav');
+  if(nav) {
+    nav.innerHTML='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => {
+      const has=!!grouped[l];
+      return `<button class="alpha-btn ${has?'has-terms':'no-terms'}" onclick="${has?`scrollToLetter('${l}')`:''}">${l}</button>`;
+    }).join('');
+  }
+  renderGlossaryBody(grouped,'');
+  const cnt=document.getElementById('glossaryCount');
+  if(cnt) cnt.textContent=GLOSSARY.length+' terms';
+}
+
+function renderGlossaryBody(grouped,filter) {
+  const body=document.getElementById('glossaryBody');
+  const noRes=document.getElementById('glossaryNoResults');
+  if(!body) return;
+  const q=filter.toLowerCase();
+  let total=0, html='';
+  Object.keys(grouped).sort().forEach(letter => {
+    const terms=grouped[letter].filter(item => !q||item.term.toLowerCase().includes(q)||item.def.toLowerCase().includes(q)||item.cat.toLowerCase().includes(q));
+    if(!terms.length) return;
+    total+=terms.length;
+    html+=`<div class="glossary-letter-group" id="letter-${letter}"><div class="glossary-letter">${letter}</div>${terms.map(item=>`<div class="glossary-term"><div><div class="term-name">${q?item.term.replace(new RegExp('('+q+')','gi'),'<mark style="background:rgba(232,255,71,0.2);color:var(--accent);border-radius:2px;">$1</mark>'):item.term}</div><div class="term-category">${item.cat}</div></div><div class="term-def">${item.def}</div></div>`).join('')}</div>`;
+  });
+  body.innerHTML=html;
+  if(noRes) noRes.style.display=total===0?'block':'none';
+  const cnt=document.getElementById('glossaryCount');
+  if(cnt) cnt.textContent=total+' term'+(total!==1?'s':'');
+}
+
+function filterGlossary() {
+  const q=document.getElementById('glossarySearch').value;
+  const grouped={};
+  GLOSSARY.forEach(item => { const l=item.term[0].toUpperCase(); if(!grouped[l]) grouped[l]=[]; grouped[l].push(item); });
+  renderGlossaryBody(grouped,q);
+}
+
+function scrollToLetter(letter) {
+  showGlossary();
+  setTimeout(()=>{ const el=document.getElementById('letter-'+letter); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },50);
+}
+
+// INIT
+document.body.classList.add('landing-active');
+buildGlossary();
+const macTrack = document.getElementById('track-mac');
+if(macTrack) macTrack.classList.add('active');
+goTo(0);
+setTimeout(replayScroll, 500);
+setTimeout(() => {
+  document.getElementById('keyHintBar').classList.add('show');
+  setTimeout(() => document.getElementById('keyHintBar').classList.remove('show'), 4000);
+}, 1200);
+
+
+function enterGuide() {
+  const landing = document.getElementById('landing');
+  landing.classList.add('exit');
+  document.body.classList.remove('landing-active');
+  landing.addEventListener('animationend', () => {
+    landing.style.display = 'none';
+  }, { once: true });
+}
+
+// also allow any keypress to enter
+document.addEventListener('keydown', function landingKey(e) {
+  if (document.getElementById('landing').style.display === 'none') return;
+  if (['ArrowDown','ArrowUp','Enter',' '].includes(e.key)) {
+    enterGuide();
+    document.removeEventListener('keydown', landingKey);
+  }
+});
+
+</script>
+</body>
+</html>
