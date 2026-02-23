@@ -37,30 +37,6 @@ Just HTML. One file, zero dependencies, zero build step.
 
 ---
 
-## Usage
-
-```bash
-# Clone the repo
-git clone https://github.com/yourusername/vibe-coding-guide.git
-
-# Open locally — no server needed
-open index.html
-```
-
-Or just drag `index.html` to your browser.
-
----
-
-## Deploy
-
-The fastest path to a live URL:
-
-1. Go to [netlify.com/drop](https://netlify.com/drop)
-2. Drag `index.html` onto the page
-3. Done — you have a public URL in under 60 seconds
-
-For a custom domain, connect it through Netlify's domain settings (~$12/year via Namecheap or Google Domains).
-
 ---
 
 ## Keyboard Shortcuts
